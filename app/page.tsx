@@ -1,65 +1,82 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+const HYDRA_URL = "http://localhost:8082";
+
+type HeadTag = "Idle" | "Initial" | "Open" | "Closed" | "FanoutPossible" | "Final" | string;
+
+function statusColor(tag: HeadTag) {
+  if (tag === "Open") return "bg-green-500";
+  if (tag === "Initial") return "bg-yellow-400";
+  if (tag === "Idle") return "bg-gray-400";
+  if (tag === "Closed" || tag === "Final") return "bg-red-400";
+  return "bg-gray-300";
+}
+
+function statusLabel(tag: HeadTag) {
+  if (tag === "...") return "Connecting...";
+  return tag;
+}
+
+const parties = [
+  { name: "Alice", role: "Sender", href: "/alice", color: "border-blue-200 hover:border-blue-400" },
+  { name: "Bob", role: "Receiver", href: "/bob", color: "border-purple-200 hover:border-purple-400" },
+  { name: "Carol", role: "Mediator", href: "/carol", color: "border-orange-200 hover:border-orange-400" },
+];
 
 export default function Home() {
+  const [headTag, setHeadTag] = useState<HeadTag>("...");
+
+  useEffect(() => {
+    async function poll() {
+      try {
+        const res = await fetch(`${HYDRA_URL}/hydra/query/head`);
+        if (!res.ok) throw new Error("not ok");
+        const data = await res.json();
+        setHeadTag(data.tag ?? "Unknown");
+      } catch {
+        setHeadTag("Offline");
+      }
+    }
+    poll();
+    const id = setInterval(poll, 5000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto py-16 px-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Hydra Escrow Devnet</h1>
+        <p className="text-gray-500 mb-8 text-sm">3-party payment channel dashboard</p>
+
+        {/* Head Status */}
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-8 flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-600">Head Status</span>
+          <span className="flex items-center gap-2 ml-auto">
+            <span className={`inline-block w-2.5 h-2.5 rounded-full ${statusColor(headTag)} ${headTag === "Open" ? "animate-pulse" : ""}`} />
+            <span className="text-sm font-semibold text-gray-800">{statusLabel(headTag)}</span>
+          </span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Party Cards */}
+        <div className="flex flex-col gap-4">
+          {parties.map((p) => (
+            <Link
+              key={p.name}
+              href={p.href}
+              className={`bg-white border-2 ${p.color} rounded-lg p-5 transition-colors flex items-center justify-between group`}
+            >
+              <div>
+                <div className="font-semibold text-gray-900">{p.name}</div>
+                <div className="text-sm text-gray-500">{p.role}</div>
+              </div>
+              <span className="text-gray-400 group-hover:text-gray-700 transition-colors text-lg">→</span>
+            </Link>
+          ))}
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
