@@ -21,9 +21,9 @@ function statusLabel(tag: HeadTag) {
 }
 
 const parties = [
-  { name: "Alice", role: "Sender", href: "/alice", color: "border-blue-200 hover:border-blue-400" },
-  { name: "Bob", role: "Receiver", href: "/bob", color: "border-purple-200 hover:border-purple-400" },
-  { name: "Carol", role: "Mediator", href: "/carol", color: "border-orange-200 hover:border-orange-400" },
+  { name: "Alice", role: "Sender", href: "/alice" },
+  { name: "Bob", role: "Receiver", href: "/bob" },
+  { name: "Carol", role: "Mediator", href: "/carol" },
 ];
 
 export default function Home() {
@@ -66,7 +66,7 @@ export default function Home() {
             <Link
               key={p.name}
               href={p.href}
-              className={`bg-white border-2 ${p.color} rounded-lg p-5 transition-colors flex items-center justify-between group`}
+              className="bg-white border border-gray-200 rounded-lg p-5 transition-colors flex items-center justify-between group hover:border-gray-300"
             >
               <div>
                 <div className="font-semibold text-gray-900">{p.name}</div>
