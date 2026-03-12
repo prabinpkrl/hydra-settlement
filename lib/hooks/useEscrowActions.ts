@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useEscrowStore, generateDealId, saveCurrentEscrow, useHeadProposalStore } from "../escrow-store";
+import { useEscrowStore, generateDealId, saveCurrentEscrows, useHeadProposalStore } from "../escrow-store";
 import {
   logDirectSend,
   logEscrowLock,
@@ -26,10 +26,7 @@ async function apiSend(from: string, toAddress: string, lovelace: number): Promi
  */
 export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
   const [loading, setLoading] = useState(false);
-  const {
-    status, amount, recipientAddress, dealId,
-    setEscrow, resetEscrow,
-  } = useEscrowStore();
+  const { addEscrow, updateEscrow, escrows } = useEscrowStore();
   const { currentHeadId } = useHeadProposalStore();
 
   // ── Direct transfer ────────────────────────────────────────────────────────
@@ -58,19 +55,20 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
     try {
       const hash = await apiSend("alice", PARTY_ADDRESSES.alice, lovelace);
       const newDealId = generateDealId();
-      const escrowData = {
-        status: "PENDING" as const,
+      const newEscrow = {
         dealId: newDealId,
+        status: "PENDING" as const,
         amount: String(lovelace),
         description,
         recipientAddress: recipient,
-        txHash: hash
+        txHash: hash,
+        disputeReason: "",
       };
-      setEscrow(escrowData);
-      // Save to head-based storage instead of deal-based
-      saveCurrentEscrow(currentHeadId, escrowData);
+      addEscrow(newEscrow);
+      // Save all escrows to head-based storage
+      saveCurrentEscrows(currentHeadId, [...escrows, { ...newEscrow, createdAt: Date.now() }]);
       logEscrowLock("alice", recipient, lovelace, description, hash);
-      toast(`Escrow created! All parties in head can see it.`, true);
+      toast(`Escrow ${newDealId} created! All parties in head can see it.`, true);
     } catch (err: any) {
       toast(err?.message ?? "Lock failed", false);
     } finally {
@@ -78,16 +76,22 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
     }
   }
 
-  // ── Escrow: release to recipient ───────────────────────────────────────────
-  async function releasePayment() {
+  // ── Escrow: release to recipient (by dealId) ───────────────────────────────
+  async function releasePayment(dealId: string) {
     setLoading(true);
     try {
-      const lovelace = Number(amount);
-      const hash = await apiSend("alice", recipientAddress, lovelace);
-      const updated = { status: "COMPLETED" as const, txHash: hash };
-      setEscrow(updated);
-      saveCurrentEscrow(currentHeadId, { ...useEscrowStore.getState(), ...updated });
-      logEscrowRelease("alice", recipientAddress, lovelace, hash);
+      const escrow = escrows.find(e => e.dealId === dealId);
+      if (!escrow) {
+        toast("Escrow not found", false);
+        return;
+      }
+      const lovelace = Number(escrow.amount);
+      const hash = await apiSend("alice", escrow.recipientAddress, lovelace);
+      updateEscrow(dealId, { status: "COMPLETED", txHash: hash });
+      saveCurrentEscrows(currentHeadId, escrows.map(e => 
+        e.dealId === dealId ? { ...e, status: "COMPLETED" as const, txHash: hash } : e
+      ));
+      logEscrowRelease("alice", escrow.recipientAddress, lovelace, hash);
       toast("Payment released!", true);
     } catch (err: any) {
       toast(err?.message ?? "Release failed", false);
@@ -97,18 +101,35 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
   }
 
   // ── Escrow: raise dispute ──────────────────────────────────────────────────
-  function raiseDispute(reason: string) {
-    const updated = { status: "DISPUTED" as const, disputeReason: reason };
-    setEscrow(updated);
-    saveCurrentEscrow(currentHeadId, { ...useEscrowStore.getState(), ...updated });
-    logEscrowDispute("alice", Number(amount), reason);
+  function raiseDispute(dealId: string, reason: string) {
+    const escrow = escrows.find(e => e.dealId === dealId);
+    if (!escrow) {
+      toast("Escrow not found", false);
+      return;
+    }
+    updateEscrow(dealId, { status: "DISPUTED", disputeReason: reason });
+    saveCurrentEscrows(currentHeadId, escrows.map(e =>
+      e.dealId === dealId ? { ...e, status: "DISPUTED" as const, disputeReason: reason } : e
+    ));
+    logEscrowDispute("alice", Number(escrow.amount), reason);
     toast("Dispute raised. Mediator notified.", false);
   }
 
-  // ── Escrow: reset ──────────────────────────────────────────────────────────
-  function resetEscrowState() {
-    resetEscrow();
+  // ── Escrow: cancel/remove ──────────────────────────────────────────────────
+  function cancelEscrow(dealId: string) {
+    const { removeEscrow } = useEscrowStore.getState();
+    removeEscrow(dealId);
+    saveCurrentEscrows(currentHeadId, escrows.filter(e => e.dealId !== dealId));
+    toast("Escrow cancelled", true);
   }
 
-  return { loading, directSend, lockFunds, releasePayment, raiseDispute, resetEscrowState };
+  // ── Backward compatibility: reset (removes first pending) ──────────────────
+  function resetEscrowState() {
+    const pending = escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    if (pending) {
+      cancelEscrow(pending.dealId);
+    }
+  }
+
+  return { loading, directSend, lockFunds, releasePayment, raiseDispute, cancelEscrow, resetEscrowState };
 }

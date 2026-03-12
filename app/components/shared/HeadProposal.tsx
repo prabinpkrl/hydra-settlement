@@ -160,7 +160,7 @@ export function HeadProposal({ party, onHeadReady }: Props) {
                 onClick={handleCopy}
                 className="text-xs font-mono text-zinc-500 hover:text-zinc-300 transition-colors"
               >
-                {copied ? "✓" : "copy"}
+                {copied ? "copied" : "copy"}
               </button>
             </div>
             <p className="text-sm font-mono text-white break-all">{currentHeadId}</p>
@@ -172,7 +172,7 @@ export function HeadProposal({ party, onHeadReady }: Props) {
             {Object.entries(proposal.participants).map(([name, joined]) => (
               <div key={name} className="flex items-center gap-2 text-xs font-mono">
                 <span className={joined ? "text-green-400" : "text-zinc-600"}>
-                  {joined ? "✓" : "○"}
+                  {joined ? "[OK]" : "[ ]"}
                 </span>
                 <span className={joined ? "text-zinc-400" : "text-zinc-600"}>
                   {name}
@@ -198,7 +198,7 @@ export function HeadProposal({ party, onHeadReady }: Props) {
           {readyToInit && (
             <div className="bg-green-950/20 border border-green-700/30 rounded p-3">
               <p className="text-xs font-mono text-green-400">
-                ✓ all parties joined — ready to initialize
+                all parties joined - ready to initialize
               </p>
               {onHeadReady && (
                 <button

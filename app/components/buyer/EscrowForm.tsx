@@ -1,20 +1,50 @@
 import { useState } from "react";
 import { PARTY_ADDRESSES } from "@/lib/types";
+import {
+  validateAmount,
+  validateAddress,
+  validateDescription,
+  hasErrors,
+  type ValidationError,
+} from "@/lib/validation";
 
 type Props = {
   isOpen: boolean;
   loading: boolean;
+  balance?: number;  // in lovelace
   onLock: (recipient: string, lovelace: number, description: string) => void;
 };
 
-export function EscrowForm({ isOpen, loading, onLock }: Props) {
+export function EscrowForm({ isOpen, loading, balance, onLock }: Props) {
   const [recipient,   setRecipient]   = useState(PARTY_ADDRESSES.bob);
   const [amount,      setAmount]      = useState("");
   const [description, setDescription] = useState("");
+  const [touched, setTouched] = useState({ recipient: false, amount: false, description: false });
 
-  const disabled = !isOpen || !recipient || !amount || !description || loading;
+  // Validation errors
+  const errors = {
+    recipient: touched.recipient ? validateAddress(recipient) : null,
+    amount: touched.amount ? validateAmount(amount, balance) : null,
+    description: touched.description ? validateDescription(description) : null,
+  };
+
+  const disabled =
+    !isOpen ||
+    !recipient ||
+    !amount ||
+    !description ||
+    loading ||
+    hasErrors(errors);
 
   function handleSubmit() {
+    // Mark all as touched to show errors
+    setTouched({ recipient: true, amount: true, description: true });
+
+    // Revalidate
+    if (validateAddress(recipient) || validateAmount(amount, balance) || validateDescription(description)) {
+      return;
+    }
+
     const lovelace = Math.round(Number(amount) * 1_000_000);
     if (lovelace <= 0) return;
     onLock(recipient, lovelace, description);
@@ -25,14 +55,34 @@ export function EscrowForm({ isOpen, loading, onLock }: Props) {
       <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">new_escrow</p>
 
       <div className="flex flex-col gap-3">
-        <Field label="recipient">
-          <TermInput value={recipient} onChange={setRecipient} placeholder="addr_test1..." mono disabled={!isOpen || loading} />
+        <Field label="recipient" error={errors.recipient}>
+          <TermInput
+            value={recipient}
+            onChange={(v) => { setRecipient(v); setTouched({ ...touched, recipient: true }); }}
+            placeholder="addr_test1..."
+            mono
+            disabled={!isOpen || loading}
+            error={!!errors.recipient}
+          />
         </Field>
-        <Field label="amount_ada">
-          <TermInput value={amount} onChange={setAmount} placeholder="0.00" type="number" disabled={!isOpen || loading} />
+        <Field label="amount_ada" error={errors.amount}>
+          <TermInput
+            value={amount}
+            onChange={(v) => { setAmount(v); setTouched({ ...touched, amount: true }); }}
+            placeholder="0.00"
+            type="number"
+            disabled={!isOpen || loading}
+            error={!!errors.amount}
+          />
         </Field>
-        <Field label="description">
-          <TermInput value={description} onChange={setDescription} placeholder="e.g. freelance payment..." disabled={!isOpen || loading} />
+        <Field label="description" error={errors.description}>
+          <TermInput
+            value={description}
+            onChange={(v) => { setDescription(v); setTouched({ ...touched, description: true }); }}
+            placeholder="e.g. freelance payment..."
+            disabled={!isOpen || loading}
+            error={!!errors.description}
+          />
         </Field>
 
         <TermBtn onClick={handleSubmit} disabled={disabled}>
@@ -45,18 +95,30 @@ export function EscrowForm({ isOpen, loading, onLock }: Props) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: {
+  label: string;
+  error: ValidationError;
+  children: React.ReactNode;
+}) {
   return (
     <div>
       <label className="text-xs font-mono text-zinc-600 mb-1 block">{label}:</label>
       {children}
+      {error && (
+        <p className="text-xs font-mono text-red-400 mt-1">// {error}</p>
+      )}
     </div>
   );
 }
 
-function TermInput({ value, onChange, placeholder, mono, type = "text", disabled }: {
-  value: string; onChange: (v: string) => void; placeholder?: string;
-  mono?: boolean; type?: string; disabled?: boolean;
+function TermInput({ value, onChange, placeholder, mono, type = "text", disabled, error }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  mono?: boolean;
+  type?: string;
+  disabled?: boolean;
+  error?: boolean;
 }) {
   return (
     <input
@@ -65,9 +127,13 @@ function TermInput({ value, onChange, placeholder, mono, type = "text", disabled
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className={`w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs font-mono text-zinc-200
-        placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500
-        disabled:opacity-40 disabled:cursor-not-allowed`}
+      className={`w-full bg-zinc-800 rounded px-3 py-2 text-xs font-mono text-zinc-200
+        placeholder:text-zinc-700 focus:outline-none
+        disabled:opacity-40 disabled:cursor-not-allowed
+        ${error
+          ? "border-2 border-red-700 focus:border-red-600"
+          : "border border-zinc-700 focus:border-zinc-500"
+        }`}
     />
   );
 }

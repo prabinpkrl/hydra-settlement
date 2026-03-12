@@ -4,7 +4,7 @@ import { MediatorTab } from "@/app/components/mediator/MediatorTab";
 export default function CarolPage() {
   return (
     <main className="min-h-screen bg-zinc-950">
-      <div className="max-w-2xl mx-auto py-10 px-6">
+      <div className="max-w-7xl mx-auto py-10 px-6">
         
         {/* Header */}
         <div className="mb-8 border-b border-zinc-800 pb-5 flex items-center justify-between">

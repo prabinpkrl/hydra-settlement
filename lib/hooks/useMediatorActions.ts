@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useEscrowStore } from "../escrow-store";
+import { useEscrowStore, saveCurrentEscrows, useHeadProposalStore } from "../escrow-store";
 import { logEscrowResolvePay, logEscrowResolveRefund } from "../tx-log-store";
 import { PARTY_ADDRESSES } from "../types";
 
@@ -17,22 +17,21 @@ async function apiSend(from: string, toAddress: string, lovelace: number): Promi
 const FALLBACK_LOVELACE = 5_000_000;
 
 export function useMediatorActions(toast: (msg: string, ok: boolean) => void) {
-  const [loading,    setLoading]    = useState(false);
-  const [resolution, setResolution] = useState<"" | "paid" | "refunded">("");
-  const [resolveTxHash, setResolveTxHash] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const { amount, recipientAddress, setEscrow } = useEscrowStore();
+  const { escrows, updateEscrow } = useEscrowStore();
+  const { currentHeadId } = useHeadProposalStore();
 
-  async function payBob() {
+  async function payBob(dealId: string, bobAddress: string, amountStr: string) {
     setLoading(true);
     try {
-      const lovelace  = Number(amount) || FALLBACK_LOVELACE;
-      const recipient = recipientAddress || PARTY_ADDRESSES.bob;
-      const hash = await apiSend("carol", recipient, lovelace);
-      setResolveTxHash(hash);
-      setResolution("paid");
-      setEscrow({ status: "COMPLETED", txHash: hash });
-      logEscrowResolvePay("carol", recipient, lovelace, hash);
+      const lovelace = Number(amountStr) || FALLBACK_LOVELACE;
+      const hash = await apiSend("carol", bobAddress, lovelace);
+      updateEscrow(dealId, { status: "COMPLETED", txHash: hash });
+      saveCurrentEscrows(currentHeadId, escrows.map(e =>
+        e.dealId === dealId ? { ...e, status: "COMPLETED" as const, txHash: hash } : e
+      ));
+      logEscrowResolvePay("carol", bobAddress, lovelace, hash);
       toast("Payment sent to Bob!", true);
     } catch (err: any) {
       toast(err?.message ?? "Transaction failed", false);
@@ -41,14 +40,15 @@ export function useMediatorActions(toast: (msg: string, ok: boolean) => void) {
     }
   }
 
-  async function refundAlice() {
+  async function refundAlice(dealId: string, amountStr: string) {
     setLoading(true);
     try {
-      const lovelace = Number(amount) || FALLBACK_LOVELACE;
+      const lovelace = Number(amountStr) || FALLBACK_LOVELACE;
       const hash = await apiSend("carol", PARTY_ADDRESSES.alice, lovelace);
-      setResolveTxHash(hash);
-      setResolution("refunded");
-      setEscrow({ status: "COMPLETED", txHash: hash });
+      updateEscrow(dealId, { status: "COMPLETED", txHash: hash });
+      saveCurrentEscrows(currentHeadId, escrows.map(e =>
+        e.dealId === dealId ? { ...e, status: "COMPLETED" as const, txHash: hash } : e
+      ));
       logEscrowResolveRefund("carol", PARTY_ADDRESSES.alice, lovelace, hash);
       toast("Refund sent to Alice!", true);
     } catch (err: any) {
@@ -58,5 +58,5 @@ export function useMediatorActions(toast: (msg: string, ok: boolean) => void) {
     }
   }
 
-  return { loading, resolution, resolveTxHash, payBob, refundAlice };
+  return { loading, payBob, refundAlice };
 }

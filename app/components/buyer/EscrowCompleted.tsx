@@ -11,7 +11,7 @@ export function EscrowCompleted({ amount, recipient, description, txHash, onRese
     <section className="border border-green-900 rounded bg-zinc-900 p-4 mb-4">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs text-zinc-500 uppercase tracking-widest">escrow_complete</p>
-        <span className="text-xs font-mono text-green-400 border border-green-800 rounded px-2 py-0.5">✓ SETTLED</span>
+        <span className="text-xs font-mono text-green-400 border border-green-800 rounded px-2 py-0.5">SETTLED</span>
       </div>
 
       <div className="border border-zinc-800 rounded bg-zinc-950 p-3 mb-4 flex flex-col gap-1.5 text-xs font-mono">

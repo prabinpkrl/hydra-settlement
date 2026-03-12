@@ -27,7 +27,7 @@ const COMMIT_COLOR: Record<string, string> = {
   idle: "text-zinc-600", running: "text-amber-400", done: "text-green-400", error: "text-red-400",
 };
 const COMMIT_ICON: Record<string, string> = {
-  idle: "○", running: "◌", done: "✓", error: "✗",
+  idle: "[ ]", running: "...", done: "[OK]", error: "[ERR]",
 };
 
 export function HeadControls({
@@ -114,7 +114,7 @@ function Step({ index, current, label, doneLabel, isFinal, children }: StepProps
         <span className={`text-xs font-mono font-bold w-4 text-center ${
           isDone ? "text-green-400" : isActive ? "text-zinc-200" : "text-zinc-700"
         }`}>
-          {isDone ? "✓" : `${index + 1}`}
+          {isDone ? "OK" : `${index + 1}`}
         </span>
         <span className={`text-xs font-mono ${
           isDone ? "text-green-500" : isActive ? "text-zinc-200" : "text-zinc-600"

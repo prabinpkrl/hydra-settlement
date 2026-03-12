@@ -1,23 +1,55 @@
 import { useState } from "react";
+import {
+  validateAmount,
+  validateAddress,
+  hasErrors,
+  type ValidationError,
+} from "@/lib/validation";
 
 type Props = {
   isOpen: boolean;
   loading: boolean;
+  balance?: number;  // in lovelace
   onSend: (toAddress: string, lovelace: number) => void;
 };
 
-export function DirectTransferForm({ isOpen, loading, onSend }: Props) {
+export function DirectTransferForm({ isOpen, loading, balance, onSend }: Props) {
   const [recipient, setRecipient] = useState("");
   const [amount,    setAmount]    = useState("");
   const [lastHash,  setLastHash]  = useState("");
+  const [touched, setTouched] = useState({ recipient: false, amount: false });
 
-  const disabled = !isOpen || !recipient || !amount || loading;
+  // Validation errors
+  const errors = {
+    recipient: touched.recipient ? validateAddress(recipient) : null,
+    amount: touched.amount ? validateAmount(amount, balance) : null,
+  };
+
+  const disabled =
+    !isOpen ||
+    !recipient ||
+    !amount ||
+    loading ||
+    hasErrors(errors);
 
   async function handleSubmit() {
+    // Mark all as touched
+    setTouched({ recipient: true, amount: true });
+
+    // Revalidate
+    if (validateAddress(recipient) || validateAmount(amount, balance)) {
+      return;
+    }
+
     const lovelace = Math.round(Number(amount) * 1_000_000);
     if (lovelace <= 0) return;
     const hash = await (onSend(recipient, lovelace) as any);
-    if (hash) { setLastHash(hash); setRecipient(""); setAmount(""); }
+    if (hash) {
+      setLastHash(hash);
+      setRecipient("");
+      setAmount("");
+      setTouched({ recipient: false, amount: false });
+    }
   }
 
   return (
@@ -25,23 +57,25 @@ export function DirectTransferForm({ isOpen, loading, onSend }: Props) {
       <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">direct_transfer</p>
 
       <div className="flex flex-col gap-3">
-        <Field label="to_address">
+        <Field label="to_address" error={errors.recipient}>
           <TermInput
             value={recipient}
-            onChange={setRecipient}
+            onChange={(v) => { setRecipient(v); setTouched({ ...touched, recipient: true }); }}
             placeholder="addr_test1..."
             mono
             disabled={!isOpen || loading}
+            error={!!errors.recipient}
           />
         </Field>
 
-        <Field label="amount_ada">
+        <Field label="amount_ada" error={errors.amount}>
           <TermInput
             value={amount}
-            onChange={setAmount}
+            onChange={(v) => { setAmount(v); setTouched({ ...touched, amount: true }); }}
             placeholder="0.00"
             type="number"
             disabled={!isOpen || loading}
+            error={!!errors.amount}
           />
         </Field>
 
@@ -62,18 +96,30 @@ export function DirectTransferForm({ isOpen, loading, onSend }: Props) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: {
+  label: string;
+  error: ValidationError;
+  children: React.ReactNode;
+}) {
   return (
     <div>
       <label className="text-xs font-mono text-zinc-600 mb-1 block">{label}:</label>
       {children}
+      {error && (
+        <p className="text-xs font-mono text-red-400 mt-1">// {error}</p>
+      )}
     </div>
   );
 }
 
-function TermInput({ value, onChange, placeholder, mono, type = "text", disabled }: {
-  value: string; onChange: (v: string) => void; placeholder?: string;
-  mono?: boolean; type?: string; disabled?: boolean;
+function TermInput({ value, onChange, placeholder, mono, type = "text", disabled, error }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  mono?: boolean;
+  type?: string;
+  disabled?: boolean;
+  error?: boolean;
 }) {
   return (
     <input
@@ -82,10 +128,14 @@ function TermInput({ value, onChange, placeholder, mono, type = "text", disabled
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className={`w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs text-zinc-200
-        placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500
+      className={`w-full bg-zinc-800 rounded px-3 py-2 text-xs text-zinc-200
+        placeholder:text-zinc-700 focus:outline-none
         disabled:opacity-40 disabled:cursor-not-allowed
-        ${mono ? "font-mono" : "font-mono"}`}
+        ${mono ? "font-mono" : "font-mono"}
+        ${error
+          ? "border-2 border-red-700 focus:border-red-600"
+          : "border border-zinc-700 focus:border-zinc-500"
+        }`}
     />
   );
 }

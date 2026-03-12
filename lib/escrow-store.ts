@@ -4,17 +4,36 @@ type EscrowStatus = "IDLE" | "PENDING" | "DISPUTED" | "COMPLETED";
 type HeadProposalStatus = "pending" | "active";
 type PartyName = "alice" | "bob" | "carol";
 
-type EscrowStore = {
+type Escrow = {
+  dealId: string;        // unique deal identifier (e.g., ESC_a3f9b2)
   status: EscrowStatus;
-  dealId: string;        // unique deal identifier (e.g., ESC_a3f9b2) - for display only
   amount: string;        // in lovelace
   description: string;
   recipientAddress: string;
   disputeReason: string;
   txHash: string;
-  setEscrow: (data: Partial<EscrowStore>) => void;
-  resetEscrow: () => void;
+  createdAt: number;
+};
+
+type EscrowStore = {
+  escrows: Escrow[];
+  addEscrow: (escrow: Omit<Escrow, "createdAt">) => void;
+  updateEscrow: (dealId: string, data: Partial<Escrow>) => void;
+  removeEscrow: (dealId: string) => void;
+  getEscrow: (dealId: string) => Escrow | undefined;
+  getPendingEscrows: () => Escrow[];
   syncFromHead: (headId: string) => boolean;
+  
+  // Backward compatibility - get most recent escrow
+  status: EscrowStatus;
+  dealId: string;
+  amount: string;
+  description: string;
+  recipientAddress: string;
+  disputeReason: string;
+  txHash: string;
+  setEscrow: (data: Partial<Escrow>) => void;
+  resetEscrow: () => void;
 };
 
 // ── Deal ID generator ────────────────────────────────────────────────────────
@@ -28,64 +47,134 @@ export function generateDealId(): string {
 }
 
 // ── localStorage sync helpers (head-based) ───────────────────────────────────
-const ESCROW_KEY_PREFIX = "hydra_escrow_";
+const ESCROW_KEY_PREFIX = "hydra_escrows_";
 
-export function saveEscrowToStorage(headId: string, escrow: Partial<EscrowStore>) {
+export function saveEscrowsToStorage(headId: string, escrows: Escrow[]) {
   try {
     localStorage.setItem(ESCROW_KEY_PREFIX + headId, JSON.stringify({
-      ...escrow,
+      escrows,
       timestamp: Date.now(),
     }));
   } catch (e) {
-    console.error("Failed to save escrow to localStorage", e);
+    console.error("Failed to save escrows to localStorage", e);
   }
 }
 
-export function loadEscrowFromStorage(headId: string): Partial<EscrowStore> | null {
+export function loadEscrowsFromStorage(headId: string): Escrow[] {
   try {
     const data = localStorage.getItem(ESCROW_KEY_PREFIX + headId);
-    if (!data) return null;
-    return JSON.parse(data);
+    if (!data) return [];
+    const parsed = JSON.parse(data);
+    return parsed.escrows || [];
   } catch (e) {
-    console.error("Failed to load escrow from localStorage", e);
-    return null;
+    console.error("Failed to load escrows from localStorage", e);
+    return [];
   }
 }
 
 export const useEscrowStore = create<EscrowStore>((set, get) => ({
-  status: "IDLE",
-  dealId: "",
-  amount: "",
-  description: "",
-  recipientAddress: "",
-  disputeReason: "",
-  txHash: "",
-  setEscrow: (data) => {
-    set((state) => ({ ...state, ...data }));
+  escrows: [],
+  
+  // Backward compatibility getters - return most recent pending/active escrow
+  get status() {
+    const escrows = get().escrows;
+    const active = escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    return active?.status || "IDLE";
   },
-  resetEscrow: () => set({ 
-    status: "IDLE",
-    dealId: "",
-    amount: "", 
-    description: "", 
-    recipientAddress: "", 
-    disputeReason: "", 
-    txHash: "" 
-  }),
+  get dealId() {
+    const escrows = get().escrows;
+    const active = escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    return active?.dealId || "";
+  },
+  get amount() {
+    const escrows = get().escrows;
+    const active = escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    return active?.amount || "";
+  },
+  get description() {
+    const escrows = get().escrows;
+    const active = escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    return active?.description || "";
+  },
+  get recipientAddress() {
+    const escrows = get().escrows;
+    const active = escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    return active?.recipientAddress || "";
+  },
+  get disputeReason() {
+    const escrows = get().escrows;
+    const active = escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    return active?.disputeReason || "";
+  },
+  get txHash() {
+    const escrows = get().escrows;
+    const active = escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    return active?.txHash || "";
+  },
+  
+  addEscrow: (escrow) => {
+    const newEscrow = { ...escrow, createdAt: Date.now() };
+    set((state) => ({ escrows: [...state.escrows, newEscrow] }));
+  },
+  
+  updateEscrow: (dealId, data) => {
+    set((state) => ({
+      escrows: state.escrows.map((e) =>
+        e.dealId === dealId ? { ...e, ...data } : e
+      ),
+    }));
+  },
+  
+  removeEscrow: (dealId) => {
+    set((state) => ({
+      escrows: state.escrows.filter((e) => e.dealId !== dealId),
+    }));
+  },
+  
+  getEscrow: (dealId) => {
+    return get().escrows.find((e) => e.dealId === dealId);
+  },
+  
+  getPendingEscrows: () => {
+    return get().escrows.filter((e) => e.status === "PENDING" || e.status === "DISPUTED");
+  },
+  
+  setEscrow: (data) => {
+    // Backward compatibility - updates the most recent active escrow or creates new one
+    const state = get();
+    const active = state.escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    
+    if (active && data.dealId === active.dealId) {
+      state.updateEscrow(active.dealId, data);
+    } else if (data.dealId && data.status) {
+      // New escrow
+      state.addEscrow(data as Omit<Escrow, "createdAt">);
+    }
+  },
+  
+  resetEscrow: () => {
+    // Backward compatibility - removes most recent active escrow
+    const state = get();
+    const active = state.escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+    if (active) {
+      state.removeEscrow(active.dealId);
+    }
+  },
+  
   syncFromHead: (headId: string) => {
-    const escrow = loadEscrowFromStorage(headId);
-    if (escrow) {
-      set(escrow as EscrowStore);
+    const escrows = loadEscrowsFromStorage(headId);
+    if (escrows.length > 0) {
+      set({ escrows });
       return true;
     }
     return false;
   },
 }));
 
-// ── Helper to save escrow with current headId ─────────────────────────────────
-export function saveCurrentEscrow(headId: string, escrow: Partial<EscrowStore>) {
+// ── Helper to save escrows with current headId ─────────────────────────────────
+export function saveCurrentEscrows(headId: string, escrows: Escrow[]) {
   if (headId) {
-    saveEscrowToStorage(headId, escrow);
+    saveEscrowsToStorage(headId, escrows);
   }
 }
 

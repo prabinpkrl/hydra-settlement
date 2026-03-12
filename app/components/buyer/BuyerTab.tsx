@@ -15,9 +15,7 @@ import { HeadControls } from "@/app/components/buyer/HeadControls";
 import { HeadProposal } from "@/app/components/shared/HeadProposal";
 import { DirectTransferForm } from "@/app/components/buyer/DirectTransferForm";
 import { EscrowForm } from "@/app/components/buyer/EscrowForm";
-import { EscrowActive } from "@/app/components/buyer/EscrowActive";
-import { EscrowDisputed } from "@/app/components/buyer/EscrowDisputed";
-import { EscrowCompleted } from "@/app/components/buyer/EscrowCompleted";
+import { EscrowList } from "@/app/components/buyer/EscrowList";
 
 type Mode = "direct" | "escrow";
 
@@ -36,12 +34,9 @@ export function BuyerTab() {
   const escrowActions = useEscrowActions(showToast);
   const events        = useTxLogStore((s) => s.events);
   const { proposal, markActive } = useHeadProposalStore();
+  const { escrows, getPendingEscrows } = useEscrowStore();
 
-  const {
-    status: escrowStatus,
-    dealId, amount, description, recipientAddress, disputeReason, txHash,
-  } = useEscrowStore();
-
+  const pendingEscrows = getPendingEscrows();
   const isOpen = headTag === "Open";
   const headNotInitialized = headTag === "Idle" || headTag === "...";
 
@@ -68,6 +63,77 @@ export function BuyerTab() {
         </div>
       </div>
 
+      {/* Two-column layout for desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left column - Forms and actions */}
+        <div className="space-y-4">
+          <BalanceCard
+            balance={balance}
+            utxos={utxos}
+            loading={utxoLoading}
+            isOpen={isOpen}
+          />
+
+          {/* Transfer mode tabs */}
+          <div className="flex gap-1 mb-4 border border-zinc-800 rounded p-1 bg-zinc-900">
+        {(["direct", "escrow"] as Mode[]).map((m) => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={`flex-1 py-1.5 rounded text-xs font-mono uppercase tracking-widest transition-colors ${
+              mode === m
+                ? "bg-zinc-700 text-zinc-100"
+                : "text-zinc-600 hover:text-zinc-400"
+            }`}
+          >
+            {m === "direct" ? "direct" : "escrow"}
+          </button>
+        ))}
+      </div>
+
+          {mode === "direct" && (
+            <DirectTransferForm
+              isOpen={isOpen}
+              loading={escrowActions.loading}
+              balance={balance}
+              onSend={escrowActions.directSend}
+            />
+          )}
+
+          {mode === "escrow" && (
+            <>
+              <EscrowForm
+                isOpen={isOpen}
+                loading={escrowActions.loading}
+                balance={balance}
+                onLock={escrowActions.lockFunds}
+              />
+              
+              <EscrowList
+                escrows={pendingEscrows}
+                isOpen={isOpen}
+                loading={escrowActions.loading}
+                onRelease={escrowActions.releasePayment}
+                onCancel={escrowActions.cancelEscrow}
+                onDispute={escrowActions.raiseDispute}
+              />
+            </>
+          )}
+        </div>
+
+        {/* Right column - Activity feed */}
+        <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
+            <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">activity_log</p>
+            <TransactionFeed
+              events={events}
+              filterParty="alice"
+              emptyText="no transactions yet"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Head Coordination or Controls */}
       {headNotInitialized && proposal?.status !== "active" ? (
         <HeadProposal party="alice" onHeadReady={handleHeadReady} />
@@ -85,92 +151,6 @@ export function BuyerTab() {
           onFanout={headActions.fanoutHead}
         />
       )}
-
-      <BalanceCard
-        balance={balance}
-        utxos={utxos}
-        loading={utxoLoading}
-        isOpen={isOpen}
-      />
-
-      {/* Transfer mode tabs */}
-      <div className="flex gap-1 mb-4 border border-zinc-800 rounded p-1 bg-zinc-900">
-        {(["direct", "escrow"] as Mode[]).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={`flex-1 py-1.5 rounded text-xs font-mono uppercase tracking-widest transition-colors ${
-              mode === m
-                ? "bg-zinc-700 text-zinc-100"
-                : "text-zinc-600 hover:text-zinc-400"
-            }`}
-          >
-            {m === "direct" ? "direct" : "escrow"}
-          </button>
-        ))}
-      </div>
-
-      {mode === "direct" && (
-        <DirectTransferForm
-          isOpen={isOpen}
-          loading={escrowActions.loading}
-          onSend={escrowActions.directSend}
-        />
-      )}
-
-      {mode === "escrow" && (
-        <>
-          {escrowStatus === "IDLE" && (
-            <EscrowForm
-              isOpen={isOpen}
-              loading={escrowActions.loading}
-              onLock={escrowActions.lockFunds}
-            />
-          )}
-          {escrowStatus === "PENDING" && (
-            <EscrowActive
-              isOpen={isOpen}
-              loading={escrowActions.loading}
-              dealId={dealId}
-              amount={amount}
-              description={description}
-              recipient={recipientAddress}
-              txHash={txHash}
-              onRelease={escrowActions.releasePayment}
-              onCancel={escrowActions.resetEscrowState}
-              onDispute={escrowActions.raiseDispute}
-            />
-          )}
-          {escrowStatus === "DISPUTED" && (
-            <EscrowDisputed
-              dealId={dealId}
-              amount={amount}
-              recipient={recipientAddress}
-              description={description}
-              disputeReason={disputeReason}
-            />
-          )}
-          {escrowStatus === "COMPLETED" && (
-            <EscrowCompleted
-              amount={amount}
-              recipient={recipientAddress}
-              description={description}
-              txHash={txHash}
-              onReset={escrowActions.resetEscrowState}
-            />
-          )}
-        </>
-      )}
-
-      {/* Activity feed */}
-      <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
-        <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">activity_log</p>
-        <TransactionFeed
-          events={events}
-          filterParty="alice"
-          emptyText="no transactions yet"
-        />
-      </div>
     </div>
   );
 }

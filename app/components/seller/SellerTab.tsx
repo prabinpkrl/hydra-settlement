@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useHeadState } from "@/lib/hooks/useHeadState";
 import { usePartyUtxos } from "@/lib/hooks/usePartyUtxos";
 import { useEscrowStore, useHeadProposalStore } from "@/lib/escrow-store";
@@ -9,18 +9,15 @@ import { HeadStatusBadge } from "@/app/components/ui/HeadStatusBadge";
 import { BalanceCard } from "@/app/components/ui/BalanceCard";
 import { TransactionFeed } from "@/app/components/ui/TransactionFeed";
 import { HeadProposal } from "@/app/components/shared/HeadProposal";
+import { IncomingEscrowList } from "@/app/components/seller/IncomingEscrowList";
 import { PARTY_ADDRESSES } from "@/lib/types";
 
 export function SellerTab() {
-  const [confirmed, setConfirmed] = useState(false);
-
   const headTag = useHeadState("bob");
   const { utxos, balance, loading } = usePartyUtxos("bob");
   const events = useTxLogStore((s) => s.events);
   const { proposal, currentHeadId } = useHeadProposalStore();
-  const { syncFromHead } = useEscrowStore();
-
-  const { status: escrowStatus, amount, disputeReason } = useEscrowStore();
+  const { escrows, syncFromHead } = useEscrowStore();
 
   const isOpen = headTag === "Open";
   const headNotInitialized = headTag === "Idle" || headTag === "...";
@@ -53,64 +50,28 @@ export function SellerTab() {
         <HeadProposal party="bob" />
       )}
 
-      {/* Incoming escrow banner */}
-      {isOpen && !confirmed && escrowStatus === "PENDING" && (
-        <section className="border border-blue-900 rounded bg-zinc-900 p-4 mb-4">
-          <p className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">incoming_payment</p>
-          <p className="text-xs font-mono text-zinc-400 mb-3">
-            {amount ? `${(Number(amount) / 1_000_000).toFixed(2)} ADA` : `${(balance / 1_000_000).toFixed(2)} ADA`} locked by buyer — confirm delivery to allow release
-          </p>
-          <button
-            onClick={() => setConfirmed(true)}
-            className="w-full border border-blue-800 text-blue-300 rounded px-3 py-2 text-xs font-mono text-left
-              hover:bg-blue-950 transition-colors"
-          >
-            {'>'} confirm delivery
-          </button>
-        </section>
-      )}
+      {/* Two-column layout for desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left column - Status and balance */}
+        <div className="space-y-4">
+          <BalanceCard balance={balance} utxos={utxos} loading={loading} isOpen={isOpen} />
 
-      {/* Delivery confirmed */}
-      {confirmed && escrowStatus === "PENDING" && (
-        <section className="border border-green-900 rounded bg-zinc-900 p-4 mb-4">
-          <p className="text-xs font-mono text-green-400 mb-0.5">// delivery confirmed</p>
-          <p className="text-xs font-mono text-zinc-600">// waiting for buyer to release payment...</p>
-        </section>
-      )}
+          <IncomingEscrowList escrows={escrows} myAddress={PARTY_ADDRESSES.bob} />
 
-      {/* Dispute banner */}
-      {escrowStatus === "DISPUTED" && (
-        <section className="border border-orange-900 rounded bg-zinc-900 p-4 mb-4">
-          <p className="text-xs font-mono text-orange-400 uppercase tracking-widest mb-1">dispute_raised</p>
-          <p className="text-xs font-mono text-zinc-500">reason: {disputeReason}</p>
-          {amount && (
-            <p className="text-xs font-mono text-zinc-600">{(Number(amount) / 1_000_000).toFixed(2)} ADA — mediator reviewing</p>
+          {!isOpen && !loading && (
+            <section className="border border-zinc-800 rounded bg-zinc-900 p-4">
+              <p className="text-xs font-mono text-zinc-700">// waiting for hydra head to open</p>
+            </section>
           )}
-        </section>
-      )}
+        </div>
 
-      {/* Payment complete */}
-      {escrowStatus === "COMPLETED" && (
-        <section className="border border-green-900 rounded bg-zinc-900 p-4 mb-4">
-          <p className="text-xs font-mono text-green-400 mb-0.5">// payment released to you</p>
-          {amount && (
-            <p className="text-xs font-mono text-zinc-500">{(Number(amount) / 1_000_000).toFixed(2)} ADA</p>
-          )}
-        </section>
-      )}
-
-      <BalanceCard balance={balance} utxos={utxos} loading={loading} isOpen={isOpen} />
-
-      {!isOpen && !loading && (
-        <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
-          <p className="text-xs font-mono text-zinc-700">// waiting for hydra head to open</p>
-        </section>
-      )}
-
-      {/* Activity feed */}
-      <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
-        <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">activity_log</p>
-        <TransactionFeed events={events} filterParty="bob" emptyText="no transactions yet" />
+        {/* Right column - Activity feed */}
+        <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
+            <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">activity_log</p>
+            <TransactionFeed events={events} filterParty="bob" emptyText="no transactions yet" />
+          </div>
+        </div>
       </div>
     </div>
   );

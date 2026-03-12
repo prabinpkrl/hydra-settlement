@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { validateDisputeReason } from "@/lib/validation";
 
 type Props = {
   isOpen: boolean;
@@ -19,13 +20,20 @@ export function EscrowActive({
 }: Props) {
   const [showDispute,   setShowDispute]   = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
+  const [disputeTouched, setDisputeTouched] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const disputeError = disputeTouched ? validateDisputeReason(disputeReason) : null;
+
   function submitDispute() {
-    if (!disputeReason.trim()) return;
+    setDisputeTouched(true);
+    const error = validateDisputeReason(disputeReason);
+    if (error) return;
+    
     onDispute(disputeReason.trim());
     setShowDispute(false);
     setDisputeReason("");
+    setDisputeTouched(false);
   }
 
   function copyDealId() {
@@ -53,7 +61,7 @@ export function EscrowActive({
             className="border border-green-800 text-green-300 rounded px-3 py-2 text-xs font-mono
               hover:bg-green-950 transition-colors flex-shrink-0"
           >
-            {copied ? "✓" : "copy"}
+            {copied ? "copied" : "copy"}
           </button>
         </div>
       </div>
@@ -83,17 +91,27 @@ export function EscrowActive({
             <label className="text-xs font-mono text-zinc-600">dispute_reason:</label>
             <textarea
               value={disputeReason}
-              onChange={(e) => setDisputeReason(e.target.value)}
+              onChange={(e) => {
+                setDisputeReason(e.target.value);
+                setDisputeTouched(true);
+              }}
               placeholder="describe the issue..."
               rows={3}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs font-mono text-zinc-200
-                placeholder:text-zinc-700 resize-none focus:outline-none focus:border-zinc-500"
+              className={`w-full bg-zinc-800 rounded px-3 py-2 text-xs font-mono text-zinc-200
+                placeholder:text-zinc-700 resize-none focus:outline-none
+                ${disputeError
+                  ? "border-2 border-red-700 focus:border-red-600"
+                  : "border border-zinc-700 focus:border-zinc-500"
+                }`}
             />
+            {disputeError && (
+              <p className="text-xs font-mono text-red-400">// {disputeError}</p>
+            )}
             <div className="flex gap-2">
-              <TermBtn onClick={submitDispute} disabled={!disputeReason.trim() || loading} color="amber">
+              <TermBtn onClick={submitDispute} disabled={!!disputeError || loading} color="amber">
                submit
               </TermBtn>
-              <TermBtn onClick={() => { setShowDispute(false); setDisputeReason(""); }} disabled={false} color="zinc">
+              <TermBtn onClick={() => { setShowDispute(false); setDisputeReason(""); setDisputeTouched(false); }} disabled={false} color="zinc">
                 cancel
               </TermBtn>
             </div>
