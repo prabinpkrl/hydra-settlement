@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import type { HeadTag, Party } from "../types";
-import { HYDRA_URLS } from "../types";
 import { logHeadEvent } from "../tx-log-store";
 
 const POLL_MS = 5_000;
@@ -17,7 +16,7 @@ export function useHeadState(party: Party) {
 
     async function poll() {
       try {
-        const res = await fetch(`${HYDRA_URLS[party]}/hydra/query/head`);
+        const res = await fetch(`/api/hydra/query/head?party=${party}`);
         if (!res.ok) { setHeadTag("Offline"); return; }
         const body = await res.json();
         const tag: HeadTag = body.tag ?? "Unknown";

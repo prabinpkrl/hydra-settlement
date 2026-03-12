@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { UtxoMap, Party } from "../types";
-import { HYDRA_URLS, PARTY_ADDRESSES } from "../types";
+import { PARTY_ADDRESSES } from "../types";
 
 const POLL_MS = 5_000;
 
@@ -12,13 +12,12 @@ export function usePartyUtxos(party: Party) {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const address = PARTY_ADDRESSES[party];
-  const url     = HYDRA_URLS[party];
-
   useEffect(() => {
+    const address = PARTY_ADDRESSES[party];
+
     async function poll() {
       try {
-        const res = await fetch(`${url}/hydra/query/utxo`);
+        const res = await fetch(`/api/hydra/query/utxo?party=${party}`);
         if (!res.ok) return;
         const all: UtxoMap = await res.json();
         const mine: UtxoMap = {};
@@ -39,7 +38,7 @@ export function usePartyUtxos(party: Party) {
     poll();
     const id = setInterval(poll, POLL_MS);
     return () => clearInterval(id);
-  }, [party, address, url]);
+  }, [party]);
 
   return { utxos, balance, loading };
 }
