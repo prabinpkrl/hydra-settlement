@@ -3,6 +3,7 @@ import { useState } from "react";
 type Props = {
   isOpen: boolean;
   loading: boolean;
+  dealId: string;
   amount: string;
   description: string;
   recipient: string;
@@ -13,11 +14,12 @@ type Props = {
 };
 
 export function EscrowActive({
-  isOpen, loading, amount, description,
+  isOpen, loading, dealId, amount, description,
   recipient, txHash, onRelease, onCancel, onDispute,
 }: Props) {
   const [showDispute,   setShowDispute]   = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
+  const [copied, setCopied] = useState(false);
 
   function submitDispute() {
     if (!disputeReason.trim()) return;
@@ -26,11 +28,34 @@ export function EscrowActive({
     setDisputeReason("");
   }
 
+  function copyDealId() {
+    navigator.clipboard.writeText(dealId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   return (
     <section className="border border-amber-900 rounded bg-zinc-900 p-4 mb-4">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs text-zinc-500 uppercase tracking-widest">escrow_active</p>
         <span className="text-xs font-mono text-amber-400 border border-amber-800 rounded px-2 py-0.5">AWAITING_DELIVERY</span>
+      </div>
+
+      {/* Deal ID - shareable */}
+      <div className="border border-green-900 bg-green-950 rounded p-3 mb-3">
+        <p className="text-xs font-mono text-green-400 mb-2">// share this deal ID with seller:</p>
+        <div className="flex items-center gap-2">
+          <code className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm font-mono text-green-300 tracking-wider">
+            {dealId}
+          </code>
+          <button
+            onClick={copyDealId}
+            className="border border-green-800 text-green-300 rounded px-3 py-2 text-xs font-mono
+              hover:bg-green-950 transition-colors flex-shrink-0"
+          >
+            {copied ? "✓" : "copy"}
+          </button>
+        </div>
       </div>
 
       <div className="border border-zinc-800 rounded bg-zinc-950 p-3 mb-4 flex flex-col gap-1.5 text-xs font-mono">

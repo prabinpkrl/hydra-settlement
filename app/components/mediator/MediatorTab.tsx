@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useHeadState } from "@/lib/hooks/useHeadState";
 import { usePartyUtxos } from "@/lib/hooks/usePartyUtxos";
 import { useMediatorActions } from "@/lib/hooks/useMediatorActions";
-import { useEscrowStore } from "@/lib/escrow-store";
+import { useEscrowStore, useHeadProposalStore } from "@/lib/escrow-store";
 import { useTxLogStore } from "@/lib/tx-log-store";
 import { HeadStatusBadge } from "@/app/components/ui/HeadStatusBadge";
 import { BalanceCard } from "@/app/components/ui/BalanceCard";
 import { Toast } from "@/app/components/ui/Toast";
 import { TransactionFeed } from "@/app/components/ui/TransactionFeed";
+import { HeadProposal } from "@/app/components/shared/HeadProposal";
 import { PARTY_ADDRESSES } from "@/lib/types";
 
 const DISPUTE_AMOUNT_ADA = "5";
@@ -26,12 +27,25 @@ export function MediatorTab() {
   const { utxos, balance, loading } = usePartyUtxos("carol");
   const events = useTxLogStore((s) => s.events);
   const mediator = useMediatorActions(showToast);
+  const { proposal, currentHeadId } = useHeadProposalStore();
+  const { syncFromHead } = useEscrowStore();
 
   const { status: escrowStatus, amount } = useEscrowStore();
 
   const isOpen     = headTag === "Open";
   const isDisputed = escrowStatus === "DISPUTED";
   const canAct     = isOpen && isDisputed && mediator.resolution === "";
+  const headNotInitialized = headTag === "Idle" || headTag === "...";
+
+  // Auto-sync escrow from head storage when head is active
+  useEffect(() => {
+    if (currentHeadId && proposal?.status === "active") {
+      const interval = setInterval(() => {
+        syncFromHead(currentHeadId);
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [currentHeadId, proposal?.status, syncFromHead]);
 
   return (
     <div>
@@ -47,6 +61,11 @@ export function MediatorTab() {
           <HeadStatusBadge tag={headTag} />
         </div>
       </div>
+
+      {/* Head Coordination */}
+      {headNotInitialized && proposal?.status !== "active" && (
+        <HeadProposal party="carol" />
+      )}
 
       <BalanceCard balance={balance} utxos={utxos} loading={loading} isOpen={isOpen} />
 
@@ -117,13 +136,7 @@ export function MediatorTab() {
             </div>
           )}
         </section>
-      ) : (
-        <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
-          <p className="text-xs font-mono text-zinc-700">
-            // no active dispute — panel appears when dispute is raised
-          </p>
-        </section>
-      )}
+      ) : null}
 
       {/* Activity feed */}
       <div className="border border-zinc-800 rounded bg-zinc-900 p-4">

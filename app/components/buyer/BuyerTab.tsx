@@ -5,13 +5,14 @@ import { useHeadState } from "@/lib/hooks/useHeadState";
 import { usePartyUtxos } from "@/lib/hooks/usePartyUtxos";
 import { useHeadActions } from "@/lib/hooks/useHeadActions";
 import { useEscrowActions } from "@/lib/hooks/useEscrowActions";
-import { useEscrowStore } from "@/lib/escrow-store";
+import { useEscrowStore, useHeadProposalStore } from "@/lib/escrow-store";
 import { useTxLogStore } from "@/lib/tx-log-store";
 import { HeadStatusBadge } from "@/app/components/ui/HeadStatusBadge";
 import { BalanceCard } from "@/app/components/ui/BalanceCard";
 import { Toast } from "@/app/components/ui/Toast";
 import { TransactionFeed } from "@/app/components/ui/TransactionFeed";
 import { HeadControls } from "@/app/components/buyer/HeadControls";
+import { HeadProposal } from "@/app/components/shared/HeadProposal";
 import { DirectTransferForm } from "@/app/components/buyer/DirectTransferForm";
 import { EscrowForm } from "@/app/components/buyer/EscrowForm";
 import { EscrowActive } from "@/app/components/buyer/EscrowActive";
@@ -34,13 +35,21 @@ export function BuyerTab() {
   const headActions   = useHeadActions(undefined, showToast);
   const escrowActions = useEscrowActions(showToast);
   const events        = useTxLogStore((s) => s.events);
+  const { proposal, markActive } = useHeadProposalStore();
 
   const {
     status: escrowStatus,
-    amount, description, recipientAddress, disputeReason, txHash,
+    dealId, amount, description, recipientAddress, disputeReason, txHash,
   } = useEscrowStore();
 
   const isOpen = headTag === "Open";
+  const headNotInitialized = headTag === "Idle" || headTag === "...";
+
+  // Handle head initialization when all parties joined
+  const handleHeadReady = async () => {
+    markActive();
+    await headActions.initHead();
+  };
 
   return (
     <div>
@@ -59,18 +68,23 @@ export function BuyerTab() {
         </div>
       </div>
 
-      <HeadControls
-        headTag={headTag}
-        loading={headActions.loading}
-        closing={headActions.closing}
-        fanouting={headActions.fanouting}
-        commitStates={headActions.commitStates}
-        statusMsg={headActions.statusMsg}
-        onInit={headActions.initHead}
-        onCommitAll={headActions.commitAll}
-        onClose={headActions.closeHead}
-        onFanout={headActions.fanoutHead}
-      />
+      {/* Head Coordination or Controls */}
+      {headNotInitialized && proposal?.status !== "active" ? (
+        <HeadProposal party="alice" onHeadReady={handleHeadReady} />
+      ) : (
+        <HeadControls
+          headTag={headTag}
+          loading={headActions.loading}
+          closing={headActions.closing}
+          fanouting={headActions.fanouting}
+          commitStates={headActions.commitStates}
+          statusMsg={headActions.statusMsg}
+          onInit={headActions.initHead}
+          onCommitAll={headActions.commitAll}
+          onClose={headActions.closeHead}
+          onFanout={headActions.fanoutHead}
+        />
+      )}
 
       <BalanceCard
         balance={balance}
@@ -117,6 +131,7 @@ export function BuyerTab() {
             <EscrowActive
               isOpen={isOpen}
               loading={escrowActions.loading}
+              dealId={dealId}
               amount={amount}
               description={description}
               recipient={recipientAddress}
@@ -128,6 +143,7 @@ export function BuyerTab() {
           )}
           {escrowStatus === "DISPUTED" && (
             <EscrowDisputed
+              dealId={dealId}
               amount={amount}
               recipient={recipientAddress}
               description={description}

@@ -1,11 +1,12 @@
 type Props = {
+  dealId: string;
   amount: string;
   recipient: string;
   description: string;
   disputeReason: string;
 };
 
-export function EscrowDisputed({ amount, recipient, description, disputeReason }: Props) {
+export function EscrowDisputed({ dealId, amount, recipient, description, disputeReason }: Props) {
   return (
     <section className="border border-orange-900 rounded bg-zinc-900 p-4 mb-4">
       <div className="flex items-center justify-between mb-3">
@@ -14,6 +15,7 @@ export function EscrowDisputed({ amount, recipient, description, disputeReason }
       </div>
 
       <div className="border border-zinc-800 rounded bg-zinc-950 p-3 mb-3 flex flex-col gap-1.5 text-xs font-mono">
+        <KV k="deal_id" v={dealId} />
         <KV k="recipient" v={`${recipient.slice(0, 14)}...${recipient.slice(-6)}`} />
         <KV k="amount" v={`${(Number(amount) / 1_000_000).toFixed(2)} ADA`} />
         <KV k="note" v={description} />

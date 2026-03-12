@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useHeadState } from "@/lib/hooks/useHeadState";
 import { usePartyUtxos } from "@/lib/hooks/usePartyUtxos";
-import { useEscrowStore } from "@/lib/escrow-store";
+import { useEscrowStore, useHeadProposalStore } from "@/lib/escrow-store";
 import { useTxLogStore } from "@/lib/tx-log-store";
 import { HeadStatusBadge } from "@/app/components/ui/HeadStatusBadge";
 import { BalanceCard } from "@/app/components/ui/BalanceCard";
 import { TransactionFeed } from "@/app/components/ui/TransactionFeed";
+import { HeadProposal } from "@/app/components/shared/HeadProposal";
 import { PARTY_ADDRESSES } from "@/lib/types";
 
 export function SellerTab() {
@@ -16,10 +17,23 @@ export function SellerTab() {
   const headTag = useHeadState("bob");
   const { utxos, balance, loading } = usePartyUtxos("bob");
   const events = useTxLogStore((s) => s.events);
+  const { proposal, currentHeadId } = useHeadProposalStore();
+  const { syncFromHead } = useEscrowStore();
 
   const { status: escrowStatus, amount, disputeReason } = useEscrowStore();
 
   const isOpen = headTag === "Open";
+  const headNotInitialized = headTag === "Idle" || headTag === "...";
+
+  // Auto-sync escrow from head storage when head is active
+  useEffect(() => {
+    if (currentHeadId && proposal?.status === "active") {
+      const interval = setInterval(() => {
+        syncFromHead(currentHeadId);
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [currentHeadId, proposal?.status, syncFromHead]);
 
   return (
     <div>
@@ -33,6 +47,11 @@ export function SellerTab() {
           <HeadStatusBadge tag={headTag} />
         </div>
       </div>
+
+      {/* Head Coordination */}
+      {headNotInitialized && proposal?.status !== "active" && (
+        <HeadProposal party="bob" />
+      )}
 
       {/* Incoming escrow banner */}
       {isOpen && !confirmed && escrowStatus === "PENDING" && (

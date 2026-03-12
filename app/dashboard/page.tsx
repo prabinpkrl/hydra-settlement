@@ -4,15 +4,14 @@ import { useState } from "react";
 import { BuyerTab }    from "@/app/components/buyer/BuyerTab";
 import { SellerTab }   from "@/app/components/seller/SellerTab";
 import { MediatorTab } from "@/app/components/mediator/MediatorTab";
-import { LedgerTab }   from "@/app/components/ledger/LedgerTab";
+import Link from "next/link";
 
-type Tab = "buyer" | "seller" | "mediator" | "ledger";
+type Tab = "buyer" | "seller" | "mediator";
 
 const TABS: { id: Tab; label: string; sub: string }[] = [
   { id: "buyer",    label: "buyer",    sub: "alice"  },
   { id: "seller",   label: "seller",   sub: "bob"    },
   { id: "mediator", label: "mediator", sub: "carol"  },
-  { id: "ledger",   label: "ledger",   sub: "public" },
 ];
 
 export default function DashboardPage() {
@@ -23,9 +22,17 @@ export default function DashboardPage() {
       <div className="max-w-2xl mx-auto py-10 px-6">
 
         {/* Page header */}
-        <div className="mb-8 border-b border-zinc-800 pb-5">
-          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">hydra_settlement</p>
-          <p className="text-xs font-mono text-zinc-700">// l2 escrow dashboard</p>
+        <div className="mb-8 border-b border-zinc-800 pb-5 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">hydra_settlement</p>
+            <p className="text-xs font-mono text-zinc-700">// observer dashboard</p>
+          </div>
+          <Link
+            href="/explorer"
+            className="text-xs font-mono text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            &gt; public_ledger
+          </Link>
         </div>
 
         {/* Tab bar */}
@@ -50,7 +57,6 @@ export default function DashboardPage() {
         {active === "buyer"    && <BuyerTab />}
         {active === "seller"   && <SellerTab />}
         {active === "mediator" && <MediatorTab />}
-        {active === "ledger"   && <LedgerTab />}
 
       </div>
     </main>

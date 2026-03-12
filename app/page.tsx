@@ -4,7 +4,6 @@ const PARTIES = [
   { role: "buyer",    name: "alice", desc: "locks funds · releases payment · raises disputes" },
   { role: "seller",   name: "bob",   desc: "confirms delivery · receives payment on release" },
   { role: "mediator", name: "carol", desc: "neutral arbiter · resolves disputes on-chain" },
-  { role: "ledger",   name: "public", desc: "live feed of all activity across all parties" },
 ];
 
 const FLOW_STEPS = [
@@ -84,13 +83,47 @@ export default function LandingPage() {
         </div>
 
         {/* CTA */}
+        <div className="border border-zinc-800 rounded bg-zinc-900 p-5 mb-5">
+          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">access_interfaces</p>
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/alice"
+              className="border border-zinc-700 text-zinc-300 px-4 py-2.5 rounded font-mono text-sm
+                hover:bg-zinc-800 hover:text-zinc-100 transition-colors text-left"
+            >
+              &gt; alice_buyer
+            </Link>
+            <Link
+              href="/bob"
+              className="border border-zinc-700 text-zinc-300 px-4 py-2.5 rounded font-mono text-sm
+                hover:bg-zinc-800 hover:text-zinc-100 transition-colors text-left"
+            >
+              &gt; bob_seller
+            </Link>
+            <Link
+              href="/carol"
+              className="border border-zinc-700 text-zinc-300 px-4 py-2.5 rounded font-mono text-sm
+                hover:bg-zinc-800 hover:text-zinc-100 transition-colors text-left"
+            >
+              &gt; carol_mediator
+            </Link>
+            <Link
+              href="/explorer"
+              className="border border-blue-700 text-blue-300 px-4 py-2.5 rounded font-mono text-sm
+                hover:bg-blue-950 hover:text-blue-100 transition-colors text-left"
+            >
+              &gt; public_ledger
+            </Link>
+          </div>
+        </div>
+
         <div className="text-center">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-3 border border-zinc-600 text-zinc-200 px-8 py-3
-              rounded font-mono text-sm hover:bg-zinc-800 transition-colors"
+            className="inline-flex items-center gap-3 border border-zinc-600 text-zinc-500 px-8 py-3
+              rounded font-mono text-xs hover:bg-zinc-800 hover:text-zinc-400 transition-colors"
           >
-            &gt; enter_dashboard
+            &gt; observer_dashboard
           </Link>
         </div>
 
