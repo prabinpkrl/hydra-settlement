@@ -24,54 +24,58 @@ export function SellerTab() {
   return (
     <div>
       {/* Identity */}
-      <div className="flex items-center justify-between mb-5">
-        <p className="text-xs text-gray-400 font-mono break-all">
-          {PARTY_ADDRESSES.bob}
-        </p>
-        <HeadStatusBadge tag={headTag} />
+      <div className="flex items-start justify-between mb-5 gap-3">
+        <div>
+          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">bob :: seller</p>
+          <p className="text-xs font-mono text-zinc-700 break-all">{PARTY_ADDRESSES.bob}</p>
+        </div>
+        <div className="flex-shrink-0">
+          <HeadStatusBadge tag={headTag} />
+        </div>
       </div>
 
       {/* Incoming escrow banner */}
       {isOpen && !confirmed && escrowStatus === "PENDING" && (
-        <section className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-5">
-          <h2 className="text-sm font-semibold text-blue-900 mb-1">Payment incoming</h2>
-          <p className="text-xs text-blue-600 mb-3">
-            {amount ? `${(Number(amount) / 1_000_000).toFixed(2)} ADA` : `${(balance / 1_000_000).toFixed(2)} ADA`} locked by buyer. Confirm delivery to allow release.
+        <section className="border border-blue-900 rounded bg-zinc-900 p-4 mb-4">
+          <p className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">incoming_payment</p>
+          <p className="text-xs font-mono text-zinc-400 mb-3">
+            {amount ? `${(Number(amount) / 1_000_000).toFixed(2)} ADA` : `${(balance / 1_000_000).toFixed(2)} ADA`} locked by buyer — confirm delivery to allow release
           </p>
           <button
             onClick={() => setConfirmed(true)}
-            className="w-full bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-500 transition-colors"
+            className="w-full border border-blue-800 text-blue-300 rounded px-3 py-2 text-xs font-mono text-left
+              hover:bg-blue-950 transition-colors"
           >
-            Confirm Delivery
+            {'>'} confirm delivery
           </button>
         </section>
       )}
 
       {/* Delivery confirmed */}
       {confirmed && escrowStatus === "PENDING" && (
-        <section className="bg-green-50 border border-green-200 rounded-lg p-4 mb-5">
-          <p className="text-sm font-semibold text-green-800">Delivery confirmed!</p>
-          <p className="text-xs text-green-600">Waiting for buyer to release payment.</p>
+        <section className="border border-green-900 rounded bg-zinc-900 p-4 mb-4">
+          <p className="text-xs font-mono text-green-400 mb-0.5">// delivery confirmed</p>
+          <p className="text-xs font-mono text-zinc-600">// waiting for buyer to release payment...</p>
         </section>
       )}
 
       {/* Dispute banner */}
       {escrowStatus === "DISPUTED" && (
-        <section className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-5">
-          <p className="text-sm font-semibold text-orange-800">Dispute raised</p>
-          <p className="text-xs text-orange-600 mt-1">Reason: {disputeReason}</p>
-          <p className="text-xs text-orange-500 mt-1">
-            {amount ? `${(Number(amount) / 1_000_000).toFixed(2)} ADA` : ""} — Mediator is reviewing.
-          </p>
+        <section className="border border-orange-900 rounded bg-zinc-900 p-4 mb-4">
+          <p className="text-xs font-mono text-orange-400 uppercase tracking-widest mb-1">dispute_raised</p>
+          <p className="text-xs font-mono text-zinc-500">reason: {disputeReason}</p>
+          {amount && (
+            <p className="text-xs font-mono text-zinc-600">{(Number(amount) / 1_000_000).toFixed(2)} ADA — mediator reviewing</p>
+          )}
         </section>
       )}
 
       {/* Payment complete */}
       {escrowStatus === "COMPLETED" && (
-        <section className="bg-green-50 border border-green-200 rounded-lg p-4 mb-5">
-          <p className="text-sm font-semibold text-green-800">Payment released to you.</p>
+        <section className="border border-green-900 rounded bg-zinc-900 p-4 mb-4">
+          <p className="text-xs font-mono text-green-400 mb-0.5">// payment released to you</p>
           {amount && (
-            <p className="text-xs text-green-600 mt-1">{(Number(amount) / 1_000_000).toFixed(2)} ADA</p>
+            <p className="text-xs font-mono text-zinc-500">{(Number(amount) / 1_000_000).toFixed(2)} ADA</p>
           )}
         </section>
       )}
@@ -79,19 +83,15 @@ export function SellerTab() {
       <BalanceCard balance={balance} utxos={utxos} loading={loading} isOpen={isOpen} />
 
       {!isOpen && !loading && (
-        <section className="bg-white border border-gray-200 rounded-lg p-5 text-center mb-5">
-          <p className="text-sm text-gray-400">Waiting for Hydra Head to open.</p>
+        <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
+          <p className="text-xs font-mono text-zinc-700">// waiting for hydra head to open</p>
         </section>
       )}
 
       {/* Activity feed */}
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">My Activity</h2>
-        <TransactionFeed
-          events={events}
-          filterParty="bob"
-          emptyText="No transactions yet."
-        />
+      <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
+        <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">activity_log</p>
+        <TransactionFeed events={events} filterParty="bob" emptyText="no transactions yet" />
       </div>
     </div>
   );

@@ -1,86 +1,97 @@
 import type { TxEvent, Party } from "@/lib/types";
 
-const KIND_LABELS: Record<TxEvent["kind"], string> = {
-  direct_send:          "Direct Send",
-  escrow_lock:          "Escrow Locked",
-  escrow_release:       "Payment Released",
-  escrow_dispute:       "Dispute Raised",
-  escrow_resolve_pay:   "Dispute → Pay Seller",
-  escrow_resolve_refund:"Dispute → Refund Buyer",
-  head_open:            "Head Opened",
-  head_close:           "Head Closed",
-  head_fanout:          "Head Fanout",
+const KIND_TAG: Record<TxEvent["kind"], string> = {
+  direct_send:           "SEND",
+  escrow_lock:           "LOCK",
+  escrow_release:        "RELEASE",
+  escrow_dispute:        "DISPUTE",
+  escrow_resolve_pay:    "RESOLVE:PAY",
+  escrow_resolve_refund: "RESOLVE:REFUND",
+  head_open:             "HEAD:OPEN",
+  head_close:            "HEAD:CLOSE",
+  head_fanout:           "HEAD:FANOUT",
 };
 
 const KIND_COLOR: Record<TxEvent["kind"], string> = {
-  direct_send:          "text-blue-700 bg-blue-50 border-blue-200",
-  escrow_lock:          "text-yellow-800 bg-yellow-50 border-yellow-200",
-  escrow_release:       "text-green-800 bg-green-50 border-green-200",
-  escrow_dispute:       "text-orange-800 bg-orange-50 border-orange-200",
-  escrow_resolve_pay:   "text-green-800 bg-green-50 border-green-200",
-  escrow_resolve_refund:"text-blue-800 bg-blue-50 border-blue-200",
-  head_open:            "text-green-800 bg-green-50 border-green-200",
-  head_close:           "text-red-800 bg-red-50 border-red-200",
-  head_fanout:          "text-purple-800 bg-purple-50 border-purple-200",
+  direct_send:           "text-blue-400",
+  escrow_lock:           "text-amber-400",
+  escrow_release:        "text-green-400",
+  escrow_dispute:        "text-orange-400",
+  escrow_resolve_pay:    "text-green-400",
+  escrow_resolve_refund: "text-blue-400",
+  head_open:             "text-green-400",
+  head_close:            "text-red-400",
+  head_fanout:           "text-purple-400",
 };
 
 function formatTime(ts: number) {
-  return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return new Date(ts).toLocaleTimeString([], {
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  });
 }
 
-function partyLabel(p: Party) {
-  return p.charAt(0).toUpperCase() + p.slice(1);
-}
+const HEAD_KINDS = new Set<TxEvent["kind"]>(["head_open", "head_close", "head_fanout"]);
 
 type Props = {
   events: TxEvent[];
-  /** If provided, only shows events for this party. */
   filterParty?: Party;
   emptyText?: string;
 };
 
 export function TransactionFeed({ events, filterParty, emptyText }: Props) {
-  const visible = filterParty
+  const visible = (filterParty
     ? events.filter((e) => e.party === filterParty)
-    : events;
+    : events
+  ).filter((e) => !HEAD_KINDS.has(e.kind));
 
   if (visible.length === 0) {
     return (
-      <p className="text-sm text-gray-400 text-center py-6">
-        {emptyText ?? "No activity yet."}
+      <p className="text-xs font-mono text-zinc-600 py-4">
+        // {emptyText ?? "no activity yet"}
       </p>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-0">
       {visible.map((e) => (
         <div
           key={e.id}
-          className={`rounded-lg border px-4 py-3 text-sm ${KIND_COLOR[e.kind]}`}
+          className="flex flex-col gap-0.5 border-b border-zinc-800 py-2.5 last:border-0"
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="font-semibold">{KIND_LABELS[e.kind]}</span>
-            <span className="text-xs opacity-60">{formatTime(e.timestamp)}</span>
+          {/* Log line */}
+          <div className="flex items-center gap-2 text-xs font-mono">
+            <span className="text-zinc-600 flex-shrink-0">{formatTime(e.timestamp)}</span>
+            <span className="text-zinc-700">·</span>
+            {!filterParty && (
+              <>
+                <span className="text-zinc-400">{e.party}</span>
+                <span className="text-zinc-700">·</span>
+              </>
+            )}
+            <span className={`font-semibold ${KIND_COLOR[e.kind]}`}>{KIND_TAG[e.kind]}</span>
+            {e.amount != null && (
+              <>
+                <span className="text-zinc-700">·</span>
+                <span className="text-zinc-300">{(e.amount / 1_000_000).toFixed(2)} ADA</span>
+              </>
+            )}
           </div>
 
-          <div className="text-xs opacity-75 space-y-0.5">
-            {!filterParty && (
-              <p>By <span className="font-medium">{partyLabel(e.party)}</span></p>
-            )}
-            {e.amount != null && (
-              <p>Amount: <span className="font-medium">{(e.amount / 1_000_000).toFixed(2)} ADA</span></p>
-            )}
-            {e.description && (
-              <p>Note: {e.description}</p>
-            )}
-            {e.disputeReason && (
-              <p>Reason: {e.disputeReason}</p>
-            )}
-            {e.txHash && (
-              <p className="font-mono truncate">Tx: {e.txHash.slice(0, 16)}…</p>
-            )}
-          </div>
+          {/* Meta details */}
+          {(e.description || e.disputeReason || e.txHash) && (
+            <div className="pl-16 flex flex-col gap-0.5">
+              {e.description && (
+                <span className="text-xs font-mono text-zinc-600">note: {e.description}</span>
+              )}
+              {e.disputeReason && (
+                <span className="text-xs font-mono text-orange-600">reason: {e.disputeReason}</span>
+              )}
+              {e.txHash && (
+                <span className="text-xs font-mono text-zinc-700 truncate">tx: {e.txHash.slice(0, 20)}…</span>
+              )}
+            </div>
+          )}
         </div>
       ))}
     </div>

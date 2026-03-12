@@ -8,9 +8,9 @@ type Props = {
 };
 
 export function EscrowForm({ isOpen, loading, onLock }: Props) {
-  const [recipient,    setRecipient]    = useState(PARTY_ADDRESSES.bob);
-  const [amount,       setAmount]       = useState("");
-  const [description,  setDescription]  = useState("");
+  const [recipient,   setRecipient]   = useState(PARTY_ADDRESSES.bob);
+  const [amount,      setAmount]      = useState("");
+  const [description, setDescription] = useState("");
 
   const disabled = !isOpen || !recipient || !amount || !description || loading;
 
@@ -21,65 +21,73 @@ export function EscrowForm({ isOpen, loading, onLock }: Props) {
   }
 
   return (
-    <section className="bg-white border border-gray-200 rounded-lg p-5 mb-5">
-      <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-        New Escrow
-      </h2>
+    <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
+      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">new_escrow</p>
 
       <div className="flex flex-col gap-3">
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Recipient Address</label>
-          <input
-            type="text"
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-            placeholder="addr_test1..."
-            disabled={!isOpen || loading}
-            className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm font-mono focus:outline-none focus:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400"
-          />
-        </div>
+        <Field label="recipient">
+          <TermInput value={recipient} onChange={setRecipient} placeholder="addr_test1..." mono disabled={!isOpen || loading} />
+        </Field>
+        <Field label="amount_ada">
+          <TermInput value={amount} onChange={setAmount} placeholder="0.00" type="number" disabled={!isOpen || loading} />
+        </Field>
+        <Field label="description">
+          <TermInput value={description} onChange={setDescription} placeholder="e.g. freelance payment..." disabled={!isOpen || loading} />
+        </Field>
 
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Amount (ADA)</label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0"
-            min="0"
-            disabled={!isOpen || loading}
-            className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400"
-          />
-        </div>
+        <TermBtn onClick={handleSubmit} disabled={disabled}>
+          {loading ? <Spinner text="locking..." /> : "> lock funds"}
+        </TermBtn>
 
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Description</label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g. Freelance payment for logo design"
-            disabled={!isOpen || loading}
-            className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400"
-          />
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={disabled}
-          className="mt-1 bg-gray-900 text-white rounded-md py-2 text-sm font-medium hover:bg-gray-700 transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <><span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Locking...</>
-          ) : (
-            "Lock Funds"
-          )}
-        </button>
-
-        {!isOpen && (
-          <p className="text-xs text-gray-400 text-center">Head must be Open to lock funds.</p>
-        )}
+        {!isOpen && <p className="text-xs font-mono text-zinc-700">// head not open</p>}
       </div>
     </section>
   );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="text-xs font-mono text-zinc-600 mb-1 block">{label}:</label>
+      {children}
+    </div>
+  );
+}
+
+function TermInput({ value, onChange, placeholder, mono, type = "text", disabled }: {
+  value: string; onChange: (v: string) => void; placeholder?: string;
+  mono?: boolean; type?: string; disabled?: boolean;
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      disabled={disabled}
+      className={`w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs font-mono text-zinc-200
+        placeholder:text-zinc-700 focus:outline-none focus:border-zinc-500
+        disabled:opacity-40 disabled:cursor-not-allowed`}
+    />
+  );
+}
+
+function TermBtn({ children, onClick, disabled }: {
+  children: React.ReactNode; onClick: () => void; disabled: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="w-full border border-amber-800 text-amber-300 rounded px-3 py-2 text-xs font-mono text-left
+        hover:bg-amber-950 transition-colors flex items-center gap-2
+        disabled:border-zinc-800 disabled:text-zinc-700 disabled:cursor-not-allowed disabled:bg-transparent"
+    >
+      {children}
+    </button>
+  );
+}
+
+function Spinner({ text }: { text: string }) {
+  return <><span className="inline-block w-2.5 h-2.5 border-2 border-current border-t-transparent rounded-full animate-spin" />{text}</>;
 }

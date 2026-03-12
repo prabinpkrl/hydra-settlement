@@ -47,13 +47,16 @@ export function BuyerTab() {
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
 
       {/* Identity header */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-start justify-between mb-5 gap-3">
         <div>
-          <p className="text-xs text-gray-400 font-mono break-all">
+          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">alice :: buyer</p>
+          <p className="text-xs font-mono text-zinc-700 break-all">
             addr_test1vqdf6gzqc4we0shgtnxxkyl5reshxx6gmcaujfdr7t9l34g204fe4
           </p>
         </div>
-        <HeadStatusBadge tag={headTag} />
+        <div className="flex-shrink-0">
+          <HeadStatusBadge tag={headTag} />
+        </div>
       </div>
 
       <HeadControls
@@ -77,18 +80,18 @@ export function BuyerTab() {
       />
 
       {/* Transfer mode tabs */}
-      <div className="flex gap-2 mb-5">
+      <div className="flex gap-1 mb-4 border border-zinc-800 rounded p-1 bg-zinc-900">
         {(["direct", "escrow"] as Mode[]).map((m) => (
           <button
             key={m}
             onClick={() => setMode(m)}
-            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium border transition-colors ${
+            className={`flex-1 py-1.5 rounded text-xs font-mono uppercase tracking-widest transition-colors ${
               mode === m
-                ? "bg-gray-900 text-white border-gray-900"
-                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                ? "bg-zinc-700 text-zinc-100"
+                : "text-zinc-600 hover:text-zinc-400"
             }`}
           >
-            {m === "direct" ? "Direct Transfer" : "Escrow Transfer"}
+            {m === "direct" ? "direct" : "escrow"}
           </button>
         ))}
       </div>
@@ -144,12 +147,12 @@ export function BuyerTab() {
       )}
 
       {/* Activity feed */}
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">My Activity</h2>
+      <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
+        <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">activity_log</p>
         <TransactionFeed
           events={events}
           filterParty="alice"
-          emptyText="No transactions yet."
+          emptyText="no transactions yet"
         />
       </div>
     </div>

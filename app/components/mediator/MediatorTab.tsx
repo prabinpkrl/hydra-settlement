@@ -38,105 +38,107 @@ export function MediatorTab() {
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
 
       {/* Identity */}
-      <div className="flex items-center justify-between mb-5">
-        <p className="text-xs text-gray-400 font-mono break-all">
-          {PARTY_ADDRESSES.carol}
-        </p>
-        <HeadStatusBadge tag={headTag} />
+      <div className="flex items-start justify-between mb-5 gap-3">
+        <div>
+          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">carol :: mediator</p>
+          <p className="text-xs font-mono text-zinc-700 break-all">{PARTY_ADDRESSES.carol}</p>
+        </div>
+        <div className="flex-shrink-0">
+          <HeadStatusBadge tag={headTag} />
+        </div>
       </div>
 
       <BalanceCard balance={balance} utxos={utxos} loading={loading} isOpen={isOpen} />
 
       {/* Dispute resolution panel */}
       {isDisputed ? (
-        <section className="bg-white border border-orange-200 rounded-lg p-5 mb-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-orange-900">Dispute Active</h2>
-            <span className="bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-orange-200">
-              Pending
-            </span>
+        <section className="border border-orange-900 rounded bg-zinc-900 p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-zinc-500 uppercase tracking-widest">dispute_resolution</p>
+            <span className="text-xs font-mono text-orange-400 border border-orange-800 rounded px-2 py-0.5">PENDING</span>
           </div>
 
-          <div className="bg-orange-50 rounded-md p-4 mb-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Amount</span>
-              <span className="font-semibold text-gray-900">
+          <div className="border border-zinc-800 rounded bg-zinc-950 p-3 mb-4 flex flex-col gap-1.5 text-xs font-mono">
+            <div className="flex gap-2">
+              <span className="text-zinc-600 flex-shrink-0">amount:</span>
+              <span className="text-zinc-400">
                 {amount ? `${(Number(amount) / 1_000_000).toFixed(2)} ADA` : `${DISPUTE_AMOUNT_ADA} ADA`}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Buyer (Alice)</span>
-              <span className="font-mono text-xs text-gray-500">
-                {PARTY_ADDRESSES.alice.slice(0, 12)}…{PARTY_ADDRESSES.alice.slice(-6)}
-              </span>
+            <div className="flex gap-2">
+              <span className="text-zinc-600 flex-shrink-0">buyer_alice:</span>
+              <span className="text-zinc-400">{PARTY_ADDRESSES.alice.slice(0, 14)}...{PARTY_ADDRESSES.alice.slice(-6)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Seller (Bob)</span>
-              <span className="font-mono text-xs text-gray-500">
-                {PARTY_ADDRESSES.bob.slice(0, 12)}…{PARTY_ADDRESSES.bob.slice(-6)}
-              </span>
+            <div className="flex gap-2">
+              <span className="text-zinc-600 flex-shrink-0">seller_bob:</span>
+              <span className="text-zinc-400">{PARTY_ADDRESSES.bob.slice(0, 14)}...{PARTY_ADDRESSES.bob.slice(-6)}</span>
             </div>
           </div>
 
           {mediator.resolution === "" && (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               <button
                 onClick={mediator.payBob}
                 disabled={!canAct || mediator.loading}
-                className="w-full bg-green-600 text-white rounded-md py-2.5 text-sm font-medium hover:bg-green-500 transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full border border-green-800 text-green-300 rounded px-3 py-2 text-xs font-mono text-left
+                  hover:bg-green-950 transition-colors flex items-center gap-2
+                  disabled:border-zinc-800 disabled:text-zinc-700 disabled:cursor-not-allowed disabled:bg-transparent"
               >
-                {mediator.loading ? <Spinner /> : "Pay Bob (Seller)"}
+                {mediator.loading ? <Spinner text="sending..." /> : "> pay bob (seller)"}
               </button>
 
               <button
                 onClick={mediator.refundAlice}
                 disabled={!canAct || mediator.loading}
-                className="w-full bg-blue-600 text-white rounded-md py-2.5 text-sm font-medium hover:bg-blue-500 transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full border border-blue-800 text-blue-300 rounded px-3 py-2 text-xs font-mono text-left
+                  hover:bg-blue-950 transition-colors flex items-center gap-2
+                  disabled:border-zinc-800 disabled:text-zinc-700 disabled:cursor-not-allowed disabled:bg-transparent"
               >
-                {mediator.loading ? <Spinner /> : "Refund Alice (Buyer)"}
+                {mediator.loading ? <Spinner text="sending..." /> : "> refund alice (buyer)"}
               </button>
 
               {!isOpen && (
-                <p className="text-xs text-gray-400 text-center">Head must be Open to resolve.</p>
+                <p className="text-xs font-mono text-zinc-700">// head not open</p>
               )}
             </div>
           )}
 
           {mediator.resolution === "paid" && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-4">
-              <p className="text-sm font-semibold text-green-800 mb-1">Resolved — Payment sent to Bob</p>
-              <p className="font-mono text-xs text-gray-600 break-all">{mediator.resolveTxHash}</p>
+            <div className="border border-green-900 rounded bg-zinc-950 p-3">
+              <p className="text-xs font-mono text-green-400 mb-1">// resolved — payment sent to bob</p>
+              <p className="font-mono text-xs text-zinc-600 break-all">{mediator.resolveTxHash}</p>
             </div>
           )}
 
           {mediator.resolution === "refunded" && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <p className="text-sm font-semibold text-blue-800 mb-1">Resolved — Refund sent to Alice</p>
-              <p className="font-mono text-xs text-gray-600 break-all">{mediator.resolveTxHash}</p>
+            <div className="border border-blue-900 rounded bg-zinc-950 p-3">
+              <p className="text-xs font-mono text-blue-400 mb-1">// resolved — refund sent to alice</p>
+              <p className="font-mono text-xs text-zinc-600 break-all">{mediator.resolveTxHash}</p>
             </div>
           )}
         </section>
       ) : (
-        <section className="bg-white border border-gray-200 rounded-lg p-5 text-center mb-5">
-          <p className="text-sm text-gray-400">
-            No active dispute. Resolution panel appears when a dispute is raised.
+        <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
+          <p className="text-xs font-mono text-zinc-700">
+            // no active dispute — panel appears when dispute is raised
           </p>
         </section>
       )}
 
       {/* Activity feed */}
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">My Activity</h2>
-        <TransactionFeed
-          events={events}
-          filterParty="carol"
-          emptyText="No activity yet."
-        />
+      <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
+        <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">activity_log</p>
+        <TransactionFeed events={events} filterParty="carol" emptyText="no activity yet" />
       </div>
     </div>
   );
 }
 
-function Spinner() {
-  return <><span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Sending...</>;
+function Spinner({ text }: { text: string }) {
+  return (
+    <>
+      <span className="inline-block w-2.5 h-2.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      {text}
+    </>
+  );
 }

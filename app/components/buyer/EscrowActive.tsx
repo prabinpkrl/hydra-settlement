@@ -27,70 +27,50 @@ export function EscrowActive({
   }
 
   return (
-    <section className="bg-white border border-gray-200 rounded-lg p-5 mb-5">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Escrow Active</h2>
-        <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-yellow-200">
-          Awaiting Delivery
-        </span>
+    <section className="border border-amber-900 rounded bg-zinc-900 p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-zinc-500 uppercase tracking-widest">escrow_active</p>
+        <span className="text-xs font-mono text-amber-400 border border-amber-800 rounded px-2 py-0.5">AWAITING_DELIVERY</span>
       </div>
 
-      <div className="bg-gray-50 rounded-md p-4 mb-4 space-y-2 text-sm">
-        <Row label="Recipient" value={`${recipient.slice(0, 12)}…${recipient.slice(-6)}`} mono />
-        <Row label="Amount"    value={`${(Number(amount) / 1_000_000).toFixed(2)} ADA`} bold />
-        <Row label="Note"      value={description} />
-        <Row label="Lock Tx"   value={`${txHash.slice(0, 10)}…${txHash.slice(-6)}`} mono />
+      <div className="border border-zinc-800 rounded bg-zinc-950 p-3 mb-4 flex flex-col gap-1.5 text-xs font-mono">
+        <KV k="recipient" v={`${recipient.slice(0, 14)}...${recipient.slice(-6)}`} />
+        <KV k="amount" v={`${(Number(amount) / 1_000_000).toFixed(2)} ADA`} highlight />
+        <KV k="note" v={description} />
+        <KV k="lock_tx" v={`${txHash.slice(0, 12)}...${txHash.slice(-6)}`} />
       </div>
 
-      <div className="flex flex-col gap-3">
-        <button
-          onClick={onRelease}
-          disabled={!isOpen || loading}
-          className="w-full bg-green-600 text-white rounded-md py-2 text-sm font-medium hover:bg-green-500 transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {loading ? <Spinner /> : "Release Payment"}
-        </button>
+      <div className="flex flex-col gap-2">
+        <TermBtn onClick={onRelease} disabled={!isOpen || loading} color="green">
+          {loading ? <Spinner text="releasing..." /> : "> release payment"}
+        </TermBtn>
 
-        <button
-          onClick={onCancel}
-          disabled={loading}
-          className="w-full bg-gray-100 text-gray-600 border border-gray-300 rounded-md py-2 text-sm font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
-        >
-          Cancel Escrow
-        </button>
+        <TermBtn onClick={onCancel} disabled={loading} color="zinc">
+          cancel escrow
+        </TermBtn>
 
         {!showDispute ? (
-          <button
-            onClick={() => setShowDispute(true)}
-            disabled={loading}
-            className="w-full bg-orange-50 text-orange-700 border border-orange-200 rounded-md py-2 text-sm font-medium hover:bg-orange-100 transition-colors disabled:opacity-50"
-          >
-            Raise Dispute
-          </button>
+          <TermBtn onClick={() => setShowDispute(true)} disabled={loading} color="amber">
+            raise dispute
+          </TermBtn>
         ) : (
           <div className="flex flex-col gap-2">
-            <label className="text-xs text-gray-500">Reason for dispute</label>
+            <label className="text-xs font-mono text-zinc-600">dispute_reason:</label>
             <textarea
               value={disputeReason}
               onChange={(e) => setDisputeReason(e.target.value)}
-              placeholder="Describe the issue..."
+              placeholder="describe the issue..."
               rows={3}
-              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:border-orange-400"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs font-mono text-zinc-200
+                placeholder:text-zinc-700 resize-none focus:outline-none focus:border-zinc-500"
             />
             <div className="flex gap-2">
-              <button
-                onClick={submitDispute}
-                disabled={!disputeReason.trim() || loading}
-                className="flex-1 bg-orange-500 text-white rounded-md py-2 text-sm font-medium hover:bg-orange-400 transition-colors disabled:bg-gray-200 disabled:text-gray-400"
-              >
-                Submit
-              </button>
-              <button
-                onClick={() => { setShowDispute(false); setDisputeReason(""); }}
-                className="flex-1 bg-gray-100 text-gray-600 rounded-md py-2 text-sm font-medium hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
+              <TermBtn onClick={submitDispute} disabled={!disputeReason.trim() || loading} color="amber">
+               submit
+              </TermBtn>
+              <TermBtn onClick={() => { setShowDispute(false); setDisputeReason(""); }} disabled={false} color="zinc">
+                cancel
+              </TermBtn>
             </div>
           </div>
         )}
@@ -99,17 +79,38 @@ export function EscrowActive({
   );
 }
 
-function Row({ label, value, mono, bold }: { label: string; value: string; mono?: boolean; bold?: boolean }) {
+function KV({ k, v, highlight }: { k: string; v: string; highlight?: boolean }) {
   return (
-    <div className="flex justify-between">
-      <span className="text-gray-500">{label}</span>
-      <span className={`text-right max-w-[60%] break-all ${mono ? "font-mono text-xs text-gray-600" : ""} ${bold ? "font-semibold text-gray-900" : "text-gray-800"}`}>
-        {value}
-      </span>
+    <div className="flex gap-2">
+      <span className="text-zinc-600 flex-shrink-0">{k}:</span>
+      <span className={highlight ? "text-amber-300 font-semibold" : "text-zinc-400"}>{v}</span>
     </div>
   );
 }
 
-function Spinner() {
-  return <><span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Releasing...</>;
+const BTN_COLOR = {
+  green: "border-green-800 text-green-300 hover:bg-green-950",
+  amber: "border-amber-800 text-amber-300 hover:bg-amber-950",
+  zinc:  "border-zinc-700 text-zinc-400 hover:bg-zinc-800",
+} as const;
+
+function TermBtn({ children, onClick, disabled, color }: {
+  children: React.ReactNode; onClick: () => void;
+  disabled: boolean; color: keyof typeof BTN_COLOR;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full border rounded px-3 py-2 text-xs font-mono text-left transition-colors flex items-center gap-2
+        ${BTN_COLOR[color]}
+        disabled:border-zinc-800 disabled:text-zinc-700 disabled:cursor-not-allowed disabled:bg-transparent`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Spinner({ text }: { text: string }) {
+  return <><span className="inline-block w-2.5 h-2.5 border-2 border-current border-t-transparent rounded-full animate-spin" />{text}</>;
 }

@@ -9,25 +9,25 @@ export function LedgerTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-start justify-between mb-5 gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-gray-800">Public Ledger</h2>
-          <p className="text-xs text-gray-400 mt-0.5">All activity across all parties, newest first.</p>
+          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">public_ledger</p>
+          <p className="text-xs font-mono text-zinc-700">// all activity, newest first</p>
         </div>
         {events.length > 0 && (
           <button
             onClick={clear}
-            className="text-xs text-gray-400 hover:text-gray-600 transition-colors underline"
+            className="text-xs font-mono text-zinc-700 hover:text-zinc-400 transition-colors flex-shrink-0"
           >
-            Clear
+            &gt; clear
           </button>
         )}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
+      <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
         <TransactionFeed
           events={events}
-          emptyText="No transactions yet. Activity will appear here in real time."
+          emptyText="// no transactions yet"
         />
       </div>
     </div>

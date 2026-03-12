@@ -9,39 +9,39 @@ import { LedgerTab }   from "@/app/components/ledger/LedgerTab";
 type Tab = "buyer" | "seller" | "mediator" | "ledger";
 
 const TABS: { id: Tab; label: string; sub: string }[] = [
-  { id: "buyer",    label: "Buyer",    sub: "Alice"  },
-  { id: "seller",   label: "Seller",   sub: "Bob"    },
-  { id: "mediator", label: "Mediator", sub: "Carol"  },
-  { id: "ledger",   label: "Ledger",   sub: "Public" },
+  { id: "buyer",    label: "buyer",    sub: "alice"  },
+  { id: "seller",   label: "seller",   sub: "bob"    },
+  { id: "mediator", label: "mediator", sub: "carol"  },
+  { id: "ledger",   label: "ledger",   sub: "public" },
 ];
 
 export default function DashboardPage() {
   const [active, setActive] = useState<Tab>("buyer");
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-zinc-950">
       <div className="max-w-2xl mx-auto py-10 px-6">
 
         {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Hydra Settlement</h1>
-          <p className="text-sm text-gray-500 mt-1">L2 Escrow Dashboard</p>
+        <div className="mb-8 border-b border-zinc-800 pb-5">
+          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">hydra_settlement</p>
+          <p className="text-xs font-mono text-zinc-700">// l2 escrow dashboard</p>
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-8">
+        <div className="flex gap-1 border border-zinc-800 bg-zinc-900 rounded p-1 mb-8">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setActive(t.id)}
-              className={`flex-1 flex flex-col items-center py-2.5 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 flex flex-col items-center py-2 rounded text-xs font-mono transition-colors ${
                 active === t.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-zinc-700 text-zinc-100"
+                  : "text-zinc-600 hover:text-zinc-400"
               }`}
             >
-              <span>{t.label}</span>
-              <span className="text-xs font-normal opacity-60">{t.sub}</span>
+              <span className="uppercase tracking-wide">{t.label}</span>
+              <span className="text-zinc-700 mt-0.5">{t.sub}</span>
             </button>
           ))}
         </div>
@@ -56,3 +56,4 @@ export default function DashboardPage() {
     </main>
   );
 }
+

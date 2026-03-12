@@ -16,33 +16,29 @@ export function BalanceCard({ balance, utxos, loading, isOpen }: Props) {
   const entries = Object.entries(utxos);
 
   return (
-    <section className="bg-white border border-gray-200 rounded-lg p-5 mb-5">
-      <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-        L2 Balance
-      </h2>
+    <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
+      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">l2_balance</p>
 
       {loading ? (
-        <p className="text-sm text-gray-400">Loading...</p>
+        <p className="text-xs text-zinc-600 font-mono">fetching...</p>
       ) : !isOpen ? (
-        <p className="text-sm text-gray-400">Head must be Open to view L2 funds.</p>
+        <p className="text-xs text-zinc-600 font-mono">// head not open</p>
       ) : entries.length === 0 ? (
-        <p className="text-sm text-gray-400">No funds at this address.</p>
+        <p className="text-xs text-zinc-600 font-mono">// no utxos at this address</p>
       ) : (
         <>
-          <div className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="text-3xl font-mono font-bold text-green-400 mb-3">
             {(balance / 1_000_000).toFixed(2)}{" "}
-            <span className="text-base font-normal text-gray-500">ADA</span>
+            <span className="text-lg font-normal text-zinc-500">ADA</span>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             {entries.map(([ref, u]) => (
               <div
                 key={ref}
-                className="flex items-center justify-between text-sm border-t border-gray-100 pt-2"
+                className="flex items-center justify-between text-xs font-mono border-t border-zinc-800 pt-1.5"
               >
-                <span className="font-mono text-gray-500 text-xs">{shortRef(ref)}</span>
-                <span className="text-gray-800 font-medium">
-                  {(u.value.lovelace / 1_000_000).toFixed(2)} ADA
-                </span>
+                <span className="text-zinc-600">{shortRef(ref)}</span>
+                <span className="text-zinc-300">{(u.value.lovelace / 1_000_000).toFixed(2)} ADA</span>
               </div>
             ))}
           </div>
