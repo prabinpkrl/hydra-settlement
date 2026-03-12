@@ -34,10 +34,46 @@ Open:
 4. Alice releases payment or raises dispute
 5. Carol resolves disputes if raised
 
-## Tech Stack
-
-Next.js 15, TypeScript, Tailwind CSS, Zustand, Cardano Hydra
-
 ## Prerequisites
 
-Hydra devnet running on ports 8082-8084 (see `kuber/kuber-hydra/devnet`)
+- **Docker** installed and running
+- **Node.js** 18+ and npm
+- **Kuber Hydra devnet** - Clone and setup:
+  ```bash
+  git clone https://github.com/dQuadrant/kuber.git
+  cd kuber/kuber-hydra/devnet
+  ./reset-cluster.sh
+  ./seed-devnet.sh
+  ```
+  This will start Hydra nodes on ports 8082-8084
+  
+  📖 **For detailed Kuber Hydra setup**: [View Documentation](https://dquadrant.github.io/kuber/hydra_docusaurus/docs/hydra-js-client/local-devnet)
+
+## Setup
+
+1. **Start Hydra devnet** (in kuber-hydra/devnet directory):
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Install and run frontend**:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+3. **Initialize Hydra Head**:
+   - Open Alice's page: http://localhost:3000/alice
+   - Click "Initialize Head"
+   - All three parties (Alice, Bob, Carol) must manually commit funds
+   - Once all parties commit, the head opens
+   - **Transactions only happen after the head is open**
+
+## Tech Stack
+
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type safety
+- **Tailwind CSS v4** - Styling
+- **Zustand** - State management
+- **Cardano Hydra** - Layer-2 scaling protocol
+- **Kuber Hydra** - Hydra API wrapper
