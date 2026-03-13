@@ -1,5 +1,31 @@
 import { create } from "zustand";
 
+// ── BroadcastChannel for cross-tab communication ───────────────────────────
+let escrowChannel: BroadcastChannel | null = null;
+let headChannel: BroadcastChannel | null = null;
+
+function getEscrowChannel() {
+  if (typeof window !== "undefined" && !escrowChannel) {
+    try {
+      escrowChannel = new BroadcastChannel("escrow-store");
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+  }
+  return escrowChannel;
+}
+
+function getHeadChannel() {
+  if (typeof window !== "undefined" && !headChannel) {
+    try {
+      headChannel = new BroadcastChannel("head-proposal-store");
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+  }
+  return headChannel;
+}
+
 type EscrowStatus = "IDLE" | "PENDING" | "DISPUTED" | "COMPLETED";
 type HeadProposalStatus = "pending" | "active";
 type PartyName = "alice" | "bob" | "carol";
@@ -17,12 +43,14 @@ type Escrow = {
 
 type EscrowStore = {
   escrows: Escrow[];
+  currentHeadId?: string;
   addEscrow: (escrow: Omit<Escrow, "createdAt">) => void;
   updateEscrow: (dealId: string, data: Partial<Escrow>) => void;
   removeEscrow: (dealId: string) => void;
   getEscrow: (dealId: string) => Escrow | undefined;
   getPendingEscrows: () => Escrow[];
   syncFromHead: (headId: string) => boolean;
+  setCurrentHeadId: (headId: string) => void;
   
   // Backward compatibility - get most recent escrow
   status: EscrowStatus;
@@ -74,6 +102,11 @@ export function loadEscrowsFromStorage(headId: string): Escrow[] {
 
 export const useEscrowStore = create<EscrowStore>((set, get) => ({
   escrows: [],
+  currentHeadId: "",
+  
+  setCurrentHeadId: (headId: string) => {
+    set({ currentHeadId: headId });
+  },
   
   // Backward compatibility getters - return most recent pending/active escrow
   get status() {
@@ -114,21 +147,83 @@ export const useEscrowStore = create<EscrowStore>((set, get) => ({
   
   addEscrow: (escrow) => {
     const newEscrow = { ...escrow, createdAt: Date.now() };
-    set((state) => ({ escrows: [...state.escrows, newEscrow] }));
+    set((state) => {
+      const updated = { ...state, escrows: [...state.escrows, newEscrow] };
+      // Auto-save to localStorage for cross-tab sync
+      if (state.currentHeadId) {
+        saveEscrowsToStorage(state.currentHeadId, updated.escrows);
+      }
+      // Broadcast to other tabs
+      const channel = getEscrowChannel();
+      if (channel) {
+        try {
+          channel.postMessage({ 
+            type: "update", 
+            escrows: updated.escrows,
+            headId: state.currentHeadId 
+          });
+        } catch (err) {
+          console.error("Failed to broadcast escrow update:", err);
+        }
+      }
+      return updated;
+    });
   },
   
   updateEscrow: (dealId, data) => {
-    set((state) => ({
-      escrows: state.escrows.map((e) =>
-        e.dealId === dealId ? { ...e, ...data } : e
-      ),
-    }));
+    set((state) => {
+      const updated = {
+        ...state,
+        escrows: state.escrows.map((e) =>
+          e.dealId === dealId ? { ...e, ...data } : e
+        ),
+      };
+      // Auto-save to localStorage for cross-tab sync
+      if (state.currentHeadId) {
+        saveEscrowsToStorage(state.currentHeadId, updated.escrows);
+      }
+      // Broadcast to other tabs
+      const channel = getEscrowChannel();
+      if (channel) {
+        try {
+          channel.postMessage({ 
+            type: "update", 
+            escrows: updated.escrows,
+            headId: state.currentHeadId 
+          });
+        } catch (err) {
+          console.error("Failed to broadcast escrow update:", err);
+        }
+      }
+      return updated;
+    });
   },
   
   removeEscrow: (dealId) => {
-    set((state) => ({
-      escrows: state.escrows.filter((e) => e.dealId !== dealId),
-    }));
+    set((state) => {
+      const updated = {
+        ...state,
+        escrows: state.escrows.filter((e) => e.dealId !== dealId),
+      };
+      // Auto-save to localStorage for cross-tab sync
+      if (state.currentHeadId) {
+        saveEscrowsToStorage(state.currentHeadId, updated.escrows);
+      }
+      // Broadcast to other tabs
+      const channel = getEscrowChannel();
+      if (channel) {
+        try {
+          channel.postMessage({ 
+            type: "update", 
+            escrows: updated.escrows,
+            headId: state.currentHeadId 
+          });
+        } catch (err) {
+          console.error("Failed to broadcast escrow update:", err);
+        }
+      }
+      return updated;
+    });
   },
   
   getEscrow: (dealId) => {
@@ -164,12 +259,27 @@ export const useEscrowStore = create<EscrowStore>((set, get) => ({
   syncFromHead: (headId: string) => {
     const escrows = loadEscrowsFromStorage(headId);
     if (escrows.length > 0) {
-      set({ escrows });
+      set({ escrows, currentHeadId: headId });
       return true;
     }
     return false;
   },
 }));
+
+// ── Cross-tab synchronization for escrow store ────────────────────────────────
+if (typeof window !== "undefined") {
+  const channel = getEscrowChannel();
+  if (channel) {
+    channel.onmessage = (e) => {
+      if (e.data?.type === "update" && e.data?.escrows) {
+        useEscrowStore.setState({ 
+          escrows: e.data.escrows,
+          ...(e.data.headId && { currentHeadId: e.data.headId })
+        });
+      }
+    };
+  }
+}
 
 // ── Helper to save escrows with current headId ─────────────────────────────────
 export function saveCurrentEscrows(headId: string, escrows: Escrow[]) {
@@ -235,9 +345,19 @@ export const useHeadProposalStore = create<HeadProposalStore>((set, get) => ({
   currentHeadId: "",
   proposal: null,
   setProposal: (proposal) => {
-    set({ proposal, currentHeadId: proposal?.headId || "" });
+    const updated = { proposal, currentHeadId: proposal?.headId || "" };
+    set(updated);
     if (proposal) {
       saveHeadToStorage(proposal.headId, proposal);
+      // Broadcast to other tabs
+      const channel = getHeadChannel();
+      if (channel) {
+        try {
+          channel.postMessage({ type: "update", proposal });
+        } catch (err) {
+          console.error("Failed to broadcast head proposal update:", err);
+        }
+      }
     }
   },
   joinHead: (party) => {
@@ -250,6 +370,15 @@ export const useHeadProposalStore = create<HeadProposalStore>((set, get) => ({
     };
     set({ proposal: updated });
     saveHeadToStorage(proposal.headId, updated);
+    // Broadcast to other tabs
+    const channel = getHeadChannel();
+    if (channel) {
+      try {
+        channel.postMessage({ type: "update", proposal: updated });
+      } catch (err) {
+        console.error("Failed to broadcast head proposal update:", err);
+      }
+    }
   },
   allJoined: () => {
     const { proposal } = get();
@@ -263,6 +392,15 @@ export const useHeadProposalStore = create<HeadProposalStore>((set, get) => ({
     const updated = { ...proposal, status: "active" as HeadProposalStatus };
     set({ proposal: updated });
     saveHeadToStorage(proposal.headId, updated);
+    // Broadcast to other tabs
+    const channel = getHeadChannel();
+    if (channel) {
+      try {
+        channel.postMessage({ type: "update", proposal: updated });
+      } catch (err) {
+        console.error("Failed to broadcast head proposal update:", err);
+      }
+    }
   },
   reset: () => set({ currentHeadId: "", proposal: null }),
   syncFromHead: (headId: string) => {
@@ -274,3 +412,18 @@ export const useHeadProposalStore = create<HeadProposalStore>((set, get) => ({
     return false;
   },
 }));
+
+// ── Cross-tab synchronization for head proposal store ─────────────────────────
+if (typeof window !== "undefined") {
+  const channel = getHeadChannel();
+  if (channel) {
+    channel.onmessage = (e) => {
+      if (e.data?.type === "update" && e.data?.proposal) {
+        useHeadProposalStore.setState({
+          proposal: e.data.proposal,
+          currentHeadId: e.data.proposal.headId,
+        });
+      }
+    };
+  }
+}

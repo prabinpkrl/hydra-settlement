@@ -1,4 +1,5 @@
 import type { TxEvent, Party } from "@/lib/types";
+import { PARTY_ADDRESSES } from "@/lib/types";
 
 const KIND_TAG: Record<TxEvent["kind"], string> = {
   direct_send:           "SEND",
@@ -39,8 +40,13 @@ type Props = {
 };
 
 export function TransactionFeed({ events, filterParty, emptyText }: Props) {
+  // Filter events: show either initiated by this party OR sent to this party's address
   const visible = (filterParty
-    ? events.filter((e) => e.party === filterParty)
+    ? events.filter((e) => {
+        const isInitiator = e.party === filterParty;
+        const isReceiver = e.toAddress === PARTY_ADDRESSES[filterParty];
+        return isInitiator || isReceiver;
+      })
     : events
   ).filter((e) => !HEAD_KINDS.has(e.kind));
 

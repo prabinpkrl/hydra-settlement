@@ -1,9 +1,24 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { TxEvent, TxEventKind, Party } from "./types";
 
 let _counter = 0;
 function makeId() {
   return `${Date.now()}-${++_counter}`;
+}
+
+// ── BroadcastChannel for cross-tab communication ───────────────────────────
+let txLogChannel: BroadcastChannel | null = null;
+
+function getTxLogChannel() {
+  if (typeof window !== "undefined" && !txLogChannel) {
+    try {
+      txLogChannel = new BroadcastChannel("tx-log-store");
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+  }
+  return txLogChannel;
 }
 
 type TxLogStore = {
@@ -12,19 +27,49 @@ type TxLogStore = {
   clear: () => void;
 };
 
-export const useTxLogStore = create<TxLogStore>((set) => ({
-  events: [],
+export const useTxLogStore = create<TxLogStore>(
+  persist(
+    (set) => ({
+      events: [],
 
-  addEvent: (e) =>
-    set((state) => ({
-      events: [
-        { ...e, id: makeId(), timestamp: Date.now() },
-        ...state.events,
-      ],
-    })),
+      addEvent: (e) =>
+        set((state) => {
+          const newEvent = { ...e, id: makeId(), timestamp: Date.now() };
+          const newState = {
+            events: [newEvent, ...state.events],
+          };
+          // Broadcast to other tabs
+          const channel = getTxLogChannel();
+          if (channel) {
+            try {
+              channel.postMessage({ type: "update", events: newState.events });
+            } catch (err) {
+              console.error("Failed to broadcast tx-log update:", err);
+            }
+          }
+          return newState;
+        }),
 
-  clear: () => set({ events: [] }),
-}));
+      clear: () => set({ events: [] }),
+    }),
+    {
+      name: "tx-log-store",
+      version: 1,
+    }
+  )
+);
+
+// ── Listen for broadcasts from other tabs ──────────────────────────────────
+if (typeof window !== "undefined") {
+  const channel = getTxLogChannel();
+  if (channel) {
+    channel.onmessage = (e) => {
+      if (e.data?.type === "update" && e.data?.events) {
+        useTxLogStore.setState({ events: e.data.events });
+      }
+    };
+  }
+}
 
 // ── Convenience helpers ───────────────────────────────────────────────────────
 export function logDirectSend(

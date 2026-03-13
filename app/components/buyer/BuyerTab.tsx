@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useHeadState } from "@/lib/hooks/useHeadState";
 import { usePartyUtxos } from "@/lib/hooks/usePartyUtxos";
 import { useHeadActions } from "@/lib/hooks/useHeadActions";
@@ -34,11 +34,18 @@ export function BuyerTab() {
   const escrowActions = useEscrowActions(showToast);
   const events        = useTxLogStore((s) => s.events);
   const { proposal, markActive } = useHeadProposalStore();
-  const { escrows, getPendingEscrows } = useEscrowStore();
+  const { escrows, getPendingEscrows, setCurrentHeadId } = useEscrowStore();
 
   const pendingEscrows = getPendingEscrows();
   const isOpen = headTag === "Open";
   const headNotInitialized = headTag === "Idle" || headTag === "...";
+
+  // Sync current headId so escrows auto-save to localStorage
+  useEffect(() => {
+    if (proposal?.headId) {
+      setCurrentHeadId(proposal.headId);
+    }
+  }, [proposal?.headId, setCurrentHeadId]);
 
   // Handle head initialization when all parties joined
   const handleHeadReady = async () => {
