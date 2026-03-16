@@ -101,18 +101,36 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
   }
 
   // ── Escrow: raise dispute ──────────────────────────────────────────────────
-  function raiseDispute(dealId: string, reason: string) {
-    const escrow = escrows.find(e => e.dealId === dealId);
-    if (!escrow) {
-      toast("Escrow not found", false);
-      return;
+  async function raiseDispute(dealId: string, reason: string) {
+    setLoading(true);
+    try {
+      const escrow = escrows.find(e => e.dealId === dealId);
+      if (!escrow) {
+        toast("Escrow not found", false);
+        setLoading(false);
+        return;
+      }
+
+      const lovelace = Number(escrow.amount);
+      
+      // Send escrow amount to mediator (Carol)
+      const hash = await apiSend("alice", PARTY_ADDRESSES.carol, lovelace);
+      
+      // Update escrow status to DISPUTED
+      updateEscrow(dealId, { status: "DISPUTED", disputeReason: reason, txHash: hash });
+      saveCurrentEscrows(currentHeadId, escrows.map(e =>
+        e.dealId === dealId 
+          ? { ...e, status: "DISPUTED" as const, disputeReason: reason, txHash: hash } 
+          : e
+      ));
+      
+      logEscrowDispute("alice", lovelace, reason);
+      toast(`Dispute raised. ${(lovelace / 1_000_000).toFixed(2)} ADA sent to mediator.`, false);
+    } catch (err: any) {
+      toast(err?.message ?? "Failed to raise dispute", false);
+    } finally {
+      setLoading(false);
     }
-    updateEscrow(dealId, { status: "DISPUTED", disputeReason: reason });
-    saveCurrentEscrows(currentHeadId, escrows.map(e =>
-      e.dealId === dealId ? { ...e, status: "DISPUTED" as const, disputeReason: reason } : e
-    ));
-    logEscrowDispute("alice", Number(escrow.amount), reason);
-    toast("Dispute raised. Mediator notified.", false);
   }
 
   // ── Escrow: cancel/remove ──────────────────────────────────────────────────
