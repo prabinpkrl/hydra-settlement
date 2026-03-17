@@ -1,132 +1,94 @@
 import Link from "next/link";
 
 const PARTIES = [
-  { role: "buyer",    name: "alice", desc: "locks funds · releases payment · raises disputes" },
-  { role: "seller",   name: "bob",   desc: "confirms delivery · receives payment on release" },
-  { role: "mediator", name: "carol", desc: "neutral arbiter · resolves disputes on-chain" },
+  { role: "Buyer", name: "Alice", desc: "Locks funds, releases payment, raises disputes" },
+  { role: "Seller", name: "Bob", desc: "Confirms delivery, receives payment on release" },
+  { role: "Mediator", name: "Carol", desc: "Neutral arbiter, resolves disputes on-chain" },
 ];
 
 const FLOW_STEPS = [
-  { n: "01", text: "Buyer creates payment room — all members contribute funds to L2" },
-  { n: "02", text: "Buyer protects payment with delivery description" },
-  { n: "03", text: "Seller confirms delivery, confirms receipt" },
-  { n: "04", text: "Buyer releases payment — or reports a problem" },
-  { n: "05", text: "Dispute resolver settles: pay seller or refund buyer" },
-  { n: "06", text: "Buyer closes payment room — funds returned to Cardano" },
+  { n: "1", text: "Buyer creates payment room — all members contribute funds to L2" },
+  { n: "2", text: "Buyer protects payment with delivery description" },
+  { n: "3", text: "Seller confirms delivery, confirms receipt" },
+  { n: "4", text: "Buyer releases payment — or reports a problem" },
+  { n: "5", text: "Mediator settles: pay seller or refund buyer" },
+  { n: "6", text: "Buyer closes payment room — funds returned to Cardano" },
 ];
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-zinc-950">
-      <div className="max-w-2xl mx-auto py-16 px-6">
+    <main className="min-h-screen bg-[#f8fafc]">
+      <div className="max-w-6xl mx-auto py-20 px-6">
 
         {/* Hero */}
-        <div className="mb-14">
-          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-6">
-            cardano · hydra · l2
+        <div className="mb-20 text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+            Built on Cardano Hydra
           </p>
-          <h1 className="text-4xl font-mono font-bold text-zinc-100 mb-3 leading-tight tracking-tight">
-            hydra_settlement
+          <h1 className="text-5xl font-bold text-slate-900 mb-4">
+            Secure Payments on Layer 2
           </h1>
-          <p className="font-mono text-sm text-zinc-500 mb-8 leading-relaxed">
-            <span className="text-zinc-700">// </span>
-            Protected 3-party payments on Cardano using Hydra.
-            <br />
-            <span className="text-zinc-700">// </span>
-            Instant, secure, no fees — and settled on-chain.
+          <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
+            Instant transactions. Zero fees. Settle back to Cardano when done.
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-3 border border-zinc-700 text-zinc-300 px-5 py-2.5
-              rounded font-mono text-sm hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
+            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
           >
-            &gt; enter dashboard
+            Open App
           </Link>
         </div>
 
-        {/* What is Hydra Head */}
-        <div className="border border-zinc-800 rounded bg-zinc-900 p-5 mb-5">
-          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">How It Works</p>
-          <div className="font-mono text-xs text-zinc-500 leading-relaxed space-y-1">
-            <p><span className="text-zinc-700">// </span>A payment room is a private channel where members transact instantly.</p>
-            <p><span className="text-zinc-700">// </span>Funds are committed on-chain once, then move freely off-chain.</p>
-            <p><span className="text-zinc-700">// </span>Final state settles back to Cardano when the room closes.</p>
-          </div>
-        </div>
-
-        {/* Parties */}
-        <div className="border border-zinc-800 rounded bg-zinc-900 p-5 mb-5">
-          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">The Three Roles</p>
-          <div className="flex flex-col gap-2">
-            {PARTIES.map((p) => (
-              <div key={p.role} className="flex gap-3 font-mono text-xs">
-                <span className="text-zinc-700 w-16 flex-shrink-0">{p.role}</span>
-                <span className="text-zinc-500">{p.name}</span>
-                <span className="text-zinc-700 hidden sm:block">·</span>
-                <span className="text-zinc-700 hidden sm:block">{p.desc}</span>
+        {/* How It Works */}
+        <div className="mb-20">
+          <h2 className="text-2xl font-bold text-slate-900 mb-8 text-center">How It Works</h2>
+          <div className="grid grid-cols-3 gap-6">
+            {FLOW_STEPS.map((s) => (
+              <div key={s.n} className="bg-white p-8 rounded-lg border border-slate-200 shadow-sm">
+                <div className="text-2xl font-bold text-blue-600 mb-3">{s.n}</div>
+                <p className="text-sm text-slate-700">{s.text}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Escrow flow */}
-        <div className="border border-zinc-800 rounded bg-zinc-900 p-5 mb-12">
-          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">Payment Flow</p>
-          <div className="flex flex-col gap-2">
-            {FLOW_STEPS.map((s) => (
-              <div key={s.n} className="flex gap-3 font-mono text-xs">
-                <span className="text-zinc-700 flex-shrink-0">{s.n}</span>
-                <span className="text-zinc-500">{s.text}</span>
+        {/* Roles */}
+        <div className="mb-20">
+          <h2 className="text-2xl font-bold text-slate-900 mb-8 text-center">Three Roles</h2>
+          <div className="grid grid-cols-3 gap-6">
+            {PARTIES.map((p) => (
+              <div key={p.role} className="bg-white p-8 rounded-lg border border-slate-200 shadow-sm">
+                <h3 className="font-bold text-slate-900 mb-2">{p.name}</h3>
+                <p className="text-xs uppercase text-slate-400 font-semibold mb-3">{p.role}</p>
+                <p className="text-sm text-slate-600">{p.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* CTA */}
-        <div className="border border-zinc-800 rounded bg-zinc-900 p-5 mb-5">
-          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">access_interfaces</p>
-          <div className="flex flex-col gap-2">
-            <Link
-              href="/alice"
-              className="border border-zinc-700 text-zinc-300 px-4 py-2.5 rounded font-mono text-sm
-                hover:bg-zinc-800 hover:text-zinc-100 transition-colors text-left"
-            >
-              &gt; alice_buyer
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Get Started</h2>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link href="/alice" className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+              Alice (Buyer)
             </Link>
-            <Link
-              href="/bob"
-              className="border border-zinc-700 text-zinc-300 px-4 py-2.5 rounded font-mono text-sm
-                hover:bg-zinc-800 hover:text-zinc-100 transition-colors text-left"
-            >
-              &gt; bob_seller
+            <Link href="/bob" className="border border-slate-200 text-slate-700 px-8 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-colors">
+              Bob (Seller)
             </Link>
-            <Link
-              href="/carol"
-              className="border border-zinc-700 text-zinc-300 px-4 py-2.5 rounded font-mono text-sm
-                hover:bg-zinc-800 hover:text-zinc-100 transition-colors text-left"
-            >
-              &gt; carol_mediator
+            <Link href="/carol" className="border border-slate-200 text-slate-700 px-8 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-colors">
+              Carol (Mediator)
             </Link>
-            <Link
-              href="/explorer"
-              className="border border-blue-700 text-blue-300 px-4 py-2.5 rounded font-mono text-sm
-                hover:bg-blue-950 hover:text-blue-100 transition-colors text-left"
-            >
-              &gt; public_ledger
+            <Link href="/explorer" className="border border-slate-200 text-slate-700 px-8 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-colors">
+              Public Ledger
             </Link>
           </div>
         </div>
 
-        <div className="text-center">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-3 border border-zinc-600 text-zinc-500 px-8 py-3
-              rounded font-mono text-xs hover:bg-zinc-800 hover:text-zinc-400 transition-colors"
-          >
-            &gt; observer_dashboard
-          </Link>
+        {/* Footer */}
+        <div className="mt-20 pt-12 border-t border-slate-200 text-center">
+          <p className="text-xs text-slate-400">Powered by Cardano Hydra Protocol</p>
         </div>
-
       </div>
     </main>
   );
