@@ -1,156 +1,194 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useHeadState } from "@/lib/hooks/useHeadState";
-import { usePartyUtxos } from "@/lib/hooks/usePartyUtxos";
+import { useState } from "react";
+import { useEscrowStore } from "@/lib/escrow-store";
 import { useHeadActions } from "@/lib/hooks/useHeadActions";
 import { useEscrowActions } from "@/lib/hooks/useEscrowActions";
-import { useEscrowStore, useHeadProposalStore } from "@/lib/escrow-store";
 import { useTxLogStore } from "@/lib/tx-log-store";
-import { HeadStatusBadge } from "@/app/components/ui/HeadStatusBadge";
-import { BalanceCard } from "@/app/components/ui/BalanceCard";
-import { Toast } from "@/app/components/ui/Toast";
-import { TransactionFeed } from "@/app/components/ui/TransactionFeed";
-import { SavingsSummaryCard } from "@/app/components/ui/SavingsSummaryCard";
-
-import { HeadProposal } from "@/app/components/shared/HeadProposal";
-import { DirectTransferForm } from "@/app/components/buyer/DirectTransferForm";
-import { EscrowForm } from "@/app/components/buyer/EscrowForm";
-import { EscrowList } from "@/app/components/buyer/EscrowList";
-
-type Mode = "direct" | "escrow";
+import { PARTY_ADDRESSES } from "@/lib/types";
 
 export function BuyerTab() {
-  const [toast,   setToast]   = useState<{ msg: string; ok: boolean } | null>(null);
-  const [mode,    setMode]    = useState<Mode>("direct");
+  const [activeTab, setActiveTab] = useState<"send" | "activity">("send");
+  const escrows = useEscrowStore((s) => s.escrows);
+  const [formAmount, setFormAmount] = useState("");
+  const [formDesc, setFormDesc] = useState("");
+  const [formAddress, setFormAddress] = useState(PARTY_ADDRESSES["bob"]);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState({ type: "", text: "" });
+  const allEvents = useTxLogStore((s) => s.events);
+  const events = allEvents.filter(
+    (ev) =>
+      ev.party === "alice" &&
+      ev.kind !== "head_open" &&
+      ev.kind !== "head_close",
+  );
 
-  function showToast(msg: string, ok: boolean) {
-    setToast({ msg, ok });
-    setTimeout(() => setToast(null), 4000);
-  }
+  // Compute active escrow from escrows array
+  const activeEscrow = escrows.find(e => e.status === "PENDING" || e.status === "DISPUTED");
+  const status = activeEscrow?.status || "IDLE";
+  const amount = activeEscrow?.amount || "0";
+  const description = activeEscrow?.description || "";
+  const dealId = activeEscrow?.dealId || "";
 
-  const headTag  = useHeadState("alice");
-  const { utxos, balance, loading: utxoLoading } = usePartyUtxos("alice");
-  const headActions   = useHeadActions(undefined, showToast);
-  const escrowActions = useEscrowActions(showToast);
-  const events        = useTxLogStore((s) => s.events);
-  const { proposal, markActive } = useHeadProposalStore();
-  const { escrows, getPendingEscrows, setCurrentHeadId } = useEscrowStore();
+  const toast = (message: string, ok: boolean) => {
+    setMsg({ type: ok ? "success" : "error", text: message });
+  };
 
-  const pendingEscrows = getPendingEscrows();
-  const isOpen = headTag === "Open";
-  const headNotInitialized = headTag === "Idle" || headTag === "...";
+  const { lockFunds, releasePayment, raiseDispute } = useEscrowActions(toast);
 
-  // Sync current headId so escrows auto-save to localStorage
-  useEffect(() => {
-    if (proposal?.headId) {
-      setCurrentHeadId(proposal.headId);
+  const handleLock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMsg({ type: "", text: "" });
+    try {
+      const lovelace = parseFloat(formAmount) * 1000000;
+      await lockFunds(formAddress, lovelace, formDesc);
+      setFormAmount("");
+      setFormDesc("");
+      setFormAddress(PARTY_ADDRESSES["bob"]);
+    } catch (err) {
+      setMsg({ type: "error", text: "Failed to lock funds. Check console." });
     }
-  }, [proposal?.headId, setCurrentHeadId]);
-
-  // Sync current headId so escrows auto-save to localStorage
-  // (HeadProposal is commented out - start with payment channel controls directly)
+    setLoading(false);
+  };
 
   return (
-    <div>
-      {toast && <Toast msg={toast.msg} ok={toast.ok} />}
-
-      {/* Identity header */}
-      <div className="flex items-start justify-between mb-5 gap-3">
-        <div>
-          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">Buyer</p>
-          <p className="text-xs font-mono text-zinc-700 break-all">
-            addr_test1vqdf6gzqc4we0shgtnxxkyl5reshxx6gmcaujfdr7t9l34g204fe4
-          </p>
-        </div>
-        <div className="flex-shrink-0">
-          <HeadStatusBadge tag={headTag} />
-        </div>
+    <div className="space-y-4">
+      {/* Navigation Tabs */}
+      <div className="flex gap-6 border-b border-[#e2e8f0]">
+        <button 
+          onClick={() => setActiveTab("send")}
+          className={`pb-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "send" ? "text-[#3b82f6] border-b-2 border-[#3b82f6]" : "text-[#94a3b8] hover:text-[#64748b]"}`}
+        >
+          Send
+        </button>
+        <button 
+          onClick={() => setActiveTab("activity")}
+          className={`pb-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === "activity" ? "text-[#3b82f6] border-b-2 border-[#3b82f6]" : "text-[#94a3b8] hover:text-[#64748b]"}`}
+        >
+          History
+        </button>
       </div>
 
-      {/* L2 Banner - Show when head is open */}
-      {isOpen && (
-        <div className="rounded-xl p-3 mb-4 bg-green-900 border border-green-500 flex items-center gap-2">
-          <span className="text-green-300 font-semibold">⚡ You are on Layer 2 — transactions are instant and completely free</span>
+      {/* Content */}
+      {activeTab === "send" ? (
+        <div className="space-y-4">
+          {/* Active Payment */}
+          {status !== "IDLE" && (
+            <div className="bg-blue-50 rounded-lg border border-[#3b82f6] p-6">
+              <div className="text-3xl font-bold text-[#1e293b] mb-2">
+                {(Number(amount) / 1000000).toFixed(2)} ADA
+              </div>
+              <p className="text-xs text-[#64748b] mb-4">{description}</p>
+
+              {status === "PENDING" && (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => releasePayment(dealId)}
+                    className="flex-1 bg-[#3b82f6] text-white px-3 py-2 rounded text-xs font-bold hover:bg-[#2563eb] transition-all"
+                  >
+                    Release
+                  </button>
+                  <button 
+                    onClick={() => raiseDispute(dealId, "Item not as described")}
+                    className="flex-1 border border-[#cbd5e1] text-[#1e293b] px-3 py-2 rounded text-xs font-bold hover:bg-[#f1f5f9] transition-all"
+                  >
+                    Report Issue
+                  </button>
+                </div>
+              )}
+
+              {status === "DISPUTED" && <p className="text-xs font-bold text-[#f59e0b]">Dispute in Review</p>}
+
+              {status === "COMPLETED" && (
+                <button 
+                  onClick={() => useEscrowStore.getState().resetEscrow()}
+                  className="text-[#3b82f6] text-xs font-bold hover:underline"
+                >
+                  New Payment →
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Payment Form */}
+          {status === "IDLE" && (
+            <form onSubmit={handleLock} className="space-y-3 bg-white p-6 rounded-lg border border-[#e2e8f0]">
+              <div>
+                <input 
+                  type="text" 
+                  value={formAddress}
+                  onChange={e => setFormAddress(e.target.value)}
+                  placeholder="Seller address"
+                  className="w-full border border-[#e2e8f0] rounded px-3 py-2 text-xs focus:outline-none focus:border-[#3b82f6]"
+                  required
+                />
+              </div>
+
+              <div>
+                <input 
+                  type="number" 
+                  value={formAmount}
+                  onChange={e => setFormAmount(e.target.value)}
+                  placeholder="Amount (ADA)"
+                  className="w-full border border-[#e2e8f0] rounded px-3 py-2 text-sm focus:outline-none focus:border-[#3b82f6]"
+                  required
+                />
+              </div>
+
+              <div>
+                <input 
+                  type="text" 
+                  value={formDesc}
+                  onChange={e => setFormDesc(e.target.value)}
+                  placeholder="Item description"
+                  className="w-full border border-[#e2e8f0] rounded px-3 py-2 text-xs focus:outline-none focus:border-[#3b82f6]"
+                  required
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full bg-[#3b82f6] text-white py-2 rounded text-xs font-bold hover:bg-[#2563eb] disabled:bg-[#cbd5e1] transition-all"
+              >
+                {loading ? "Processing..." : "Send Secure Payment"}
+              </button>
+
+              {msg.text && (
+                <p className={`text-xs text-center ${msg.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                  {msg.text}
+                </p>
+              )}
+            </form>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg border border-[#e2e8f0]">
+          {events.length === 0 ? (
+            <p className="p-6 text-xs text-center text-[#94a3b8]">No history</p>
+          ) : (
+            <div className="divide-y divide-[#e2e8f0]">
+              {events.map((ev, i) => {
+                const getMessage = () => {
+                  switch (ev.kind) {
+                    case "escrow_lock": return `Sent ${(ev.amount || 0) / 1000000} ADA`;
+                    case "escrow_release": return `Released payment`;
+                    case "escrow_dispute": return `Disputed payment`;
+                    default: return ev.kind;
+                  }
+                };
+                return (
+                  <div key={i} className="p-4 text-xs">
+                    <p className="font-bold text-[#1e293b]">{getMessage()}</p>
+                    <p className="text-[#94a3b8] mt-1">{new Date(ev.timestamp).toLocaleDateString()}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
-
-      {/* Two-column layout for desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left column - Forms and actions */}
-        <div className="space-y-4">
-          <BalanceCard
-            balance={balance}
-            utxos={utxos}
-            loading={utxoLoading}
-            isOpen={isOpen}
-          />
-
-          {/* Transfer mode tabs */}
-          <div className="flex gap-1 mb-4 border border-zinc-800 rounded p-1 bg-zinc-900">
-        {(["direct", "escrow"] as Mode[]).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={`flex-1 py-1.5 rounded text-xs font-mono uppercase tracking-widest transition-colors ${
-              mode === m
-                ? "bg-zinc-700 text-zinc-100"
-                : "text-zinc-600 hover:text-zinc-400"
-            }`}
-          >
-            {m === "direct" ? "Send" : "Protected"}
-          </button>
-        ))}
-      </div>
-
-          {mode === "direct" && (
-            <DirectTransferForm
-              isOpen={isOpen}
-              loading={escrowActions.loading}
-              balance={balance}
-              onSend={escrowActions.directSend}
-            />
-          )}
-
-          {mode === "escrow" && (
-            <>
-              <EscrowForm
-                isOpen={isOpen}
-                loading={escrowActions.loading}
-                balance={balance}
-                onLock={escrowActions.lockFunds}
-              />
-              
-              <EscrowList
-                escrows={pendingEscrows}
-                isOpen={isOpen}
-                loading={escrowActions.loading}
-                onRelease={escrowActions.releasePayment}
-                onCancel={escrowActions.cancelEscrow}
-                onDispute={escrowActions.raiseDispute}
-              />
-            </>
-          )}
-        </div>
-
-        {/* Right column - Activity feed */}
-        <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
-          <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
-            <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">Activity</p>
-            <TransactionFeed
-              events={events}
-              filterParty="alice"
-              emptyText="no transactions yet"
-              isL2={isOpen}
-            />
-          </div>
-          
-          {/* Savings Summary Card */}
-          {isOpen && <SavingsSummaryCard />}
-        </div>
-      </div>
-
-      {/* Note: Payment channel controls managed in Dashboard */}
     </div>
   );
 }
