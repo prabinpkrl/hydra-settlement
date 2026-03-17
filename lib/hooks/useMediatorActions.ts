@@ -26,7 +26,7 @@ export function useMediatorActions(toast: (msg: string, ok: boolean) => void) {
   async function payBob(dealId: string, bobAddress: string, amountStr: string) {
     setLoading(true);
     try {
-      const lovelace = Number(amountStr) || FALLBACK_LOVELACE;
+      const lovelace = Math.round(Number(amountStr) * 1000000) || FALLBACK_LOVELACE;
       const hash = await apiSend("carol", bobAddress, lovelace);
       updateEscrow(dealId, { status: "COMPLETED", txHash: hash });
       saveCurrentEscrows(currentHeadId, escrows.map(e =>
@@ -45,7 +45,7 @@ export function useMediatorActions(toast: (msg: string, ok: boolean) => void) {
   async function refundAlice(dealId: string, amountStr: string) {
     setLoading(true);
     try {
-      const lovelace = Number(amountStr) || FALLBACK_LOVELACE;
+      const lovelace = Math.round(Number(amountStr) * 1000000) || FALLBACK_LOVELACE;
       const hash = await apiSend("carol", PARTY_ADDRESSES.alice, lovelace);
       updateEscrow(dealId, { status: "COMPLETED", txHash: hash });
       saveCurrentEscrows(currentHeadId, escrows.map(e =>

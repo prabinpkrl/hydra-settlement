@@ -33,7 +33,10 @@ async function apiSend(from: string, toAddress: string, lovelace: number): Promi
  * All escrow + direct-transfer actions for Alice (Buyer).
  * Returns handlers; UI components call them and read `loading`.
  */
-export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
+export function useEscrowActions(
+  toast: (msg: string, ok: boolean) => void,
+  topToast?: (msg: string, ok: boolean) => void
+) {
   const [loading, setLoading] = useState(false);
   const { addEscrow, updateEscrow, escrows } = useEscrowStore();
   const { currentHeadId } = useHeadProposalStore();
@@ -114,6 +117,7 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
         logEscrowRelease(recipientParty, escrow.recipientAddress, lovelace, hash);
       }
       incrementL2Tx();
+      if (topToast) topToast("Payment released!", true);
       toast("Payment released!", true);
     } catch (err: any) {
       toast(err?.message ?? "Release failed", false);
@@ -152,6 +156,7 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
       if (recipientParty && recipientParty !== "alice") {
         logEscrowDispute(recipientParty, lovelace, reason);
       }
+      if (topToast) topToast(`Dispute raised. ${(lovelace / 1_000_000).toFixed(2)} ADA sent to mediator.`, false);
       toast(`Dispute raised. ${(lovelace / 1_000_000).toFixed(2)} ADA sent to mediator.`, false);
     } catch (err: any) {
       toast(err?.message ?? "Failed to raise dispute", false);
