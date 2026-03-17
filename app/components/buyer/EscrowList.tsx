@@ -100,6 +100,11 @@ function EscrowCard({ escrow, isOpen, loading, onRelease, onCancel, onDispute }:
             {(Number(escrow.amount) / 1_000_000).toFixed(2)} ADA
           </span>
         </div>
+        {escrow.status === "PENDING" && (
+          <div className="text-xs text-green-600 font-semibold">
+            ⚡ Held on Layer 2 — instant & free
+          </div>
+        )}
         <div className="flex gap-2">
           <span className="text-zinc-600 flex-shrink-0">note:</span>
           <span className="text-zinc-500">{escrow.description}</span>

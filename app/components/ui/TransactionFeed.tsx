@@ -1,5 +1,6 @@
 import type { TxEvent, Party } from "@/lib/types";
 import { PARTY_ADDRESSES } from "@/lib/types";
+import { useL2CounterStore } from "@/lib/escrow-store";
 
 const KIND_TAG: Record<TxEvent["kind"], string> = {
   direct_send:           "Send",
@@ -37,9 +38,10 @@ type Props = {
   events: TxEvent[];
   filterParty?: Party;
   emptyText?: string;
+  isL2?: boolean;
 };
 
-export function TransactionFeed({ events, filterParty, emptyText }: Props) {
+export function TransactionFeed({ events, filterParty, emptyText, isL2 = false }: Props) {
   // Filter events: show either initiated by this party OR sent to this party's address
   const visible = (filterParty
     ? events.filter((e) => {
@@ -76,6 +78,11 @@ export function TransactionFeed({ events, filterParty, emptyText }: Props) {
               </>
             )}
             <span className={`font-semibold ${KIND_COLOR[e.kind]}`}>{KIND_TAG[e.kind]}</span>
+            {isL2 && (
+              <>
+                <span className="inline-block bg-blue-900 text-blue-300 text-[10px] rounded-full px-2 py-0.5">⚡ L2 · Instant</span>
+              </>
+            )}
             {e.amount != null && (
               <>
                 <span className="text-zinc-700">·</span>
@@ -83,6 +90,13 @@ export function TransactionFeed({ events, filterParty, emptyText }: Props) {
               </>
             )}
           </div>
+
+          {/* Amount with fee saved - more prominent */}
+          {isL2 && e.amount != null && (
+            <div className="pl-16">
+              <p className="text-[10px] font-mono text-zinc-600">⚡ L2 · 0 ADA fee · saved ~0.17 ADA</p>
+            </div>
+          )}
 
           {/* Meta details */}
           {(e.description || e.disputeReason || e.txHash) && (

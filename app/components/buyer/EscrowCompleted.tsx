@@ -19,6 +19,11 @@ export function EscrowCompleted({ amount, recipient, description, txHash, onRese
         <KV k="Amount" v={`${(Number(amount) / 1_000_000).toFixed(2)} ADA`} highlight />
         <KV k="Details" v={description} />
         <KV k="TX" v={txHash} full />
+        <div className="border-t border-zinc-800 pt-2 mt-2 flex flex-col gap-1.5 text-zinc-400">
+          <div>⚡ Transaction speed: Instant (Layer 2)</div>
+          <div>💰 Fee paid: 0 ADA</div>
+          <div className="text-green-600 font-semibold">💸 Fee saved vs Cardano L1: ~0.17 ADA</div>
+        </div>
       </div>
 
       <p className="text-xs font-mono text-green-600 mb-3">// Payment successfully released to recipient</p>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useEscrowStore, saveCurrentEscrows, useHeadProposalStore } from "../escrow-store";
+import { useEscrowStore, saveCurrentEscrows, useHeadProposalStore, useL2CounterStore } from "../escrow-store";
 import { logEscrowResolvePay, logEscrowResolveRefund } from "../tx-log-store";
 import { PARTY_ADDRESSES } from "../types";
 
@@ -21,6 +21,7 @@ export function useMediatorActions(toast: (msg: string, ok: boolean) => void) {
 
   const { escrows, updateEscrow } = useEscrowStore();
   const { currentHeadId } = useHeadProposalStore();
+  const { incrementL2Tx } = useL2CounterStore();
 
   async function payBob(dealId: string, bobAddress: string, amountStr: string) {
     setLoading(true);
@@ -32,6 +33,7 @@ export function useMediatorActions(toast: (msg: string, ok: boolean) => void) {
         e.dealId === dealId ? { ...e, status: "COMPLETED" as const, txHash: hash } : e
       ));
       logEscrowResolvePay("carol", bobAddress, lovelace, hash);
+      incrementL2Tx();
       toast("Payment sent to Bob!", true);
     } catch (err: any) {
       toast(err?.message ?? "Transaction failed", false);
@@ -50,6 +52,7 @@ export function useMediatorActions(toast: (msg: string, ok: boolean) => void) {
         e.dealId === dealId ? { ...e, status: "COMPLETED" as const, txHash: hash } : e
       ));
       logEscrowResolveRefund("carol", PARTY_ADDRESSES.alice, lovelace, hash);
+      incrementL2Tx();
       toast("Refund sent to Alice!", true);
     } catch (err: any) {
       toast(err?.message ?? "Transaction failed", false);

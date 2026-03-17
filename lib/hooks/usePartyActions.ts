@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useL2CounterStore } from "../escrow-store";
 import { logDirectSend, logEscrowRelease } from "../tx-log-store";
 import type { Party } from "../types";
 import { PARTY_ADDRESSES } from "../types";
@@ -21,6 +22,7 @@ async function apiSend(from: string, toAddress: string, lovelace: number): Promi
  */
 export function usePartyActions(party: Party, toast: (msg: string, ok: boolean) => void) {
   const [loading, setLoading] = useState(false);
+  const { incrementL2Tx } = useL2CounterStore();
 
   // ── Direct transfer ────────────────────────────────────────────────────────
   async function directSend(toAddress: string, lovelaceAmount: number) {

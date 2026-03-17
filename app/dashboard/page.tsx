@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useHeadState } from "@/lib/hooks/useHeadState";
 import { usePartyUtxos } from "@/lib/hooks/usePartyUtxos";
-import { useEscrowStore } from "@/lib/escrow-store";
+import { useEscrowStore, useL2CounterStore } from "@/lib/escrow-store";
 import { useTxLogStore } from "@/lib/tx-log-store";
 import { HeadStatusBadge } from "@/app/components/ui/HeadStatusBadge";
 import Link from "next/link";
@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const carolUtxos = usePartyUtxos("carol");
   const { status: escrowStatus, amount, description } = useEscrowStore();
   const events = useTxLogStore((s) => s.events);
+  const { l2TxCount } = useL2CounterStore();
 
   // Open payment channel - runs init + all commits + polls until Open
   async function openPaymentChannel() {
@@ -283,6 +284,45 @@ export default function DashboardPage() {
               Close & Withdraw to Cardano
             </button>
           )}
+        </div>
+
+        {/* L1 vs L2 Info Card */}
+        <div className="bg-slate-800 rounded-xl p-4 mb-6">
+          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-4">Why Layer 2?</p>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Cardano L1 */}
+            <div className="border border-zinc-700 rounded p-3">
+              <p className="text-xs font-mono text-zinc-400 font-semibold mb-2">Cardano L1</p>
+              <ul className="text-xs font-mono text-red-400 space-y-1">
+                <li>❌ ~20 seconds per transaction</li>
+                <li>❌ ~0.17 ADA fee</li>
+                <li>❌ Congestion during peak times</li>
+              </ul>
+            </div>
+            {/* Hydra L2 */}
+            <div className="border border-green-700 rounded p-3 bg-green-950/20">
+              <p className="text-xs font-mono text-green-400 font-semibold mb-2">Hydra L2 ⚡</p>
+              <ul className="text-xs font-mono text-green-400 space-y-1">
+                <li>✅ Instant transactions</li>
+                <li>✅ Zero fees</li>
+                <li>✅ No congestion inside head</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Counter */}
+        <div className="bg-slate-800 rounded-xl p-4 mb-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="border border-blue-700/50 rounded p-3">
+              <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-1">L2 Transactions</p>
+              <p className="text-lg font-mono text-blue-400 font-semibold">⚡ {l2TxCount}</p>
+            </div>
+            <div className="border border-green-700/50 rounded p-3">
+              <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-1">Fees Saved</p>
+              <p className="text-lg font-mono text-green-400 font-semibold">~{(l2TxCount * 0.17).toFixed(2)} ADA</p>
+            </div>
+          </div>
         </div>
 
         {/* Available Balances */}

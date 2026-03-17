@@ -106,6 +106,13 @@ export function MediatorTab() {
         </div>
       </div>
 
+      {/* L2 Banner - Show when head is open */}
+      {isOpen && (
+        <div className="rounded-xl p-3 mb-4 bg-green-900 border border-green-500 flex items-center gap-2">
+          <span className="text-green-300 font-semibold">⚡ You are on Layer 2 — transactions are instant and completely free</span>
+        </div>
+      )}
+
       {/* Head Coordination */}
       {headNotInitialized && proposal?.status !== "active" && (
         <HeadProposal party="carol" />
@@ -211,7 +218,7 @@ export function MediatorTab() {
         <div className="lg:sticky lg:top-6 lg:self-start">
           <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
             <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">Activity</p>
-            <TransactionFeed events={events} filterParty="carol" emptyText="no activity yet" />
+            <TransactionFeed events={events} filterParty="carol" emptyText="no activity yet" isL2={isOpen} />
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { HeadStatusBadge } from "@/app/components/ui/HeadStatusBadge";
 import { BalanceCard } from "@/app/components/ui/BalanceCard";
 import { Toast } from "@/app/components/ui/Toast";
 import { TransactionFeed } from "@/app/components/ui/TransactionFeed";
+import { SavingsSummaryCard } from "@/app/components/ui/SavingsSummaryCard";
 
 import { HeadProposal } from "@/app/components/shared/HeadProposal";
 import { DirectTransferForm } from "@/app/components/buyer/DirectTransferForm";
@@ -66,6 +67,13 @@ export function BuyerTab() {
           <HeadStatusBadge tag={headTag} />
         </div>
       </div>
+
+      {/* L2 Banner - Show when head is open */}
+      {isOpen && (
+        <div className="rounded-xl p-3 mb-4 bg-green-900 border border-green-500 flex items-center gap-2">
+          <span className="text-green-300 font-semibold">⚡ You are on Layer 2 — transactions are instant and completely free</span>
+        </div>
+      )}
 
       {/* Two-column layout for desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -126,15 +134,19 @@ export function BuyerTab() {
         </div>
 
         {/* Right column - Activity feed */}
-        <div className="lg:sticky lg:top-6 lg:self-start">
+        <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
           <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
             <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">Activity</p>
             <TransactionFeed
               events={events}
               filterParty="alice"
               emptyText="no transactions yet"
+              isL2={isOpen}
             />
           </div>
+          
+          {/* Savings Summary Card */}
+          {isOpen && <SavingsSummaryCard />}
         </div>
       </div>
 

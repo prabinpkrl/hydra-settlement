@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useEscrowStore, generateDealId, saveCurrentEscrows, useHeadProposalStore } from "../escrow-store";
+import { useEscrowStore, generateDealId, saveCurrentEscrows, useHeadProposalStore, useL2CounterStore } from "../escrow-store";
 import {
   logDirectSend,
   logEscrowLock,
@@ -28,6 +28,7 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
   const [loading, setLoading] = useState(false);
   const { addEscrow, updateEscrow, escrows } = useEscrowStore();
   const { currentHeadId } = useHeadProposalStore();
+  const { incrementL2Tx } = useL2CounterStore();
 
   // ── Direct transfer ────────────────────────────────────────────────────────
   async function directSend(toAddress: string, lovelaceAmount: number) {
@@ -68,6 +69,7 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
       // Save all escrows to head-based storage
       saveCurrentEscrows(currentHeadId, [...escrows, { ...newEscrow, createdAt: Date.now() }]);
       logEscrowLock("alice", recipient, lovelace, description, hash);
+      incrementL2Tx();
       toast(`Escrow ${newDealId} created! All parties in head can see it.`, true);
     } catch (err: any) {
       toast(err?.message ?? "Lock failed", false);
@@ -92,6 +94,7 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
         e.dealId === dealId ? { ...e, status: "COMPLETED" as const, txHash: hash } : e
       ));
       logEscrowRelease("alice", escrow.recipientAddress, lovelace, hash);
+      incrementL2Tx();
       toast("Payment released!", true);
     } catch (err: any) {
       toast(err?.message ?? "Release failed", false);

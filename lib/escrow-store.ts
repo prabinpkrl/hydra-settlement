@@ -1,5 +1,18 @@
 import { create } from "zustand";
 
+// ── L2 Transaction Counter Store ─────────────────────────────────────────────
+type L2CounterStore = {
+  l2TxCount: number;
+  incrementL2Tx: () => void;
+  resetL2Tx: () => void;
+};
+
+export const useL2CounterStore = create<L2CounterStore>((set) => ({
+  l2TxCount: 0,
+  incrementL2Tx: () => set((state) => ({ l2TxCount: state.l2TxCount + 1 })),
+  resetL2Tx: () => set({ l2TxCount: 0 }),
+}));
+
 // ── BroadcastChannel for cross-tab communication ───────────────────────────
 let escrowChannel: BroadcastChannel | null = null;
 let headChannel: BroadcastChannel | null = null;
