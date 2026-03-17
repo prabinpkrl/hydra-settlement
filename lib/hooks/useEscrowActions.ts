@@ -38,7 +38,7 @@ export function useEscrowActions(
   topToast?: (msg: string, ok: boolean) => void
 ) {
   const [loading, setLoading] = useState(false);
-  const { addEscrow, updateEscrow, escrows } = useEscrowStore();
+  const { addEscrow, updateEscrow, removeEscrow, escrows } = useEscrowStore();
   const { currentHeadId } = useHeadProposalStore();
   const { incrementL2Tx } = useL2CounterStore();
 
@@ -167,7 +167,6 @@ export function useEscrowActions(
 
   // ── Escrow: cancel/remove ──────────────────────────────────────────────────
   function cancelEscrow(dealId: string) {
-    const { removeEscrow } = useEscrowStore.getState();
     removeEscrow(dealId);
     saveCurrentEscrows(currentHeadId, escrows.filter(e => e.dealId !== dealId));
     toast("Escrow cancelled", true);
