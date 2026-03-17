@@ -6,7 +6,16 @@ import {
   logEscrowRelease,
   logEscrowDispute,
 } from "../tx-log-store";
+import type { Party } from "../types";
 import { PARTY_ADDRESSES } from "../types";
+
+// ── Helper: map address to party ──────────────────────────────────────────────
+function addressToParty(address: string): Party | null {
+  for (const [party, addr] of Object.entries(PARTY_ADDRESSES)) {
+    if (addr === address) return party as Party;
+  }
+  return null;
+}
 
 /** Raw API call — send ADA from a named party to an address. */
 async function apiSend(from: string, toAddress: string, lovelace: number): Promise<string> {
@@ -69,6 +78,11 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
       // Save all escrows to head-based storage
       saveCurrentEscrows(currentHeadId, [...escrows, { ...newEscrow, createdAt: Date.now() }]);
       logEscrowLock("alice", recipient, lovelace, description, hash);
+      // Also log for recipient party so they see it in their history
+      const recipientParty = addressToParty(recipient);
+      if (recipientParty && recipientParty !== "alice") {
+        logEscrowLock(recipientParty, recipient, lovelace, description, hash);
+      }
       incrementL2Tx();
       toast(`Escrow ${newDealId} created! All parties in head can see it.`, true);
     } catch (err: any) {
@@ -94,6 +108,11 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
         e.dealId === dealId ? { ...e, status: "COMPLETED" as const, txHash: hash } : e
       ));
       logEscrowRelease("alice", escrow.recipientAddress, lovelace, hash);
+      // Also log for recipient party so they see it in their history
+      const recipientParty = addressToParty(escrow.recipientAddress);
+      if (recipientParty && recipientParty !== "alice") {
+        logEscrowRelease(recipientParty, escrow.recipientAddress, lovelace, hash);
+      }
       incrementL2Tx();
       toast("Payment released!", true);
     } catch (err: any) {
@@ -128,6 +147,11 @@ export function useEscrowActions(toast: (msg: string, ok: boolean) => void) {
       ));
       
       logEscrowDispute("alice", lovelace, reason);
+      // Also log for recipient party so they see it in their history
+      const recipientParty = addressToParty(escrow.recipientAddress);
+      if (recipientParty && recipientParty !== "alice") {
+        logEscrowDispute(recipientParty, lovelace, reason);
+      }
       toast(`Dispute raised. ${(lovelace / 1_000_000).toFixed(2)} ADA sent to mediator.`, false);
     } catch (err: any) {
       toast(err?.message ?? "Failed to raise dispute", false);

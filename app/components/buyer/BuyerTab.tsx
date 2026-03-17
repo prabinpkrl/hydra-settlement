@@ -166,22 +166,41 @@ export function BuyerTab() {
       ) : (
         <div className="bg-white rounded-lg border border-[#e2e8f0]">
           {events.length === 0 ? (
-            <p className="p-6 text-xs text-center text-[#94a3b8]">No history</p>
+            <p className="p-8 text-xs text-center text-[#94a3b8]">No transactions yet</p>
           ) : (
-            <div className="divide-y divide-[#e2e8f0]">
+            <div>
               {events.map((ev, i) => {
-                const getMessage = () => {
+                const getTypeInfo = () => {
                   switch (ev.kind) {
-                    case "escrow_lock": return `Sent ${(ev.amount || 0) / 1000000} ADA`;
-                    case "escrow_release": return `Released payment`;
-                    case "escrow_dispute": return `Disputed payment`;
-                    default: return ev.kind;
+                    case "escrow_lock":
+                      return { label: "Sent", color: "text-red-600", amount: `${(ev.amount || 0) / 1000000} ADA` };
+                    case "escrow_release":
+                      return { label: "Received", color: "text-green-600", amount: `${(ev.amount || 0) / 1000000} ADA` };
+                    case "escrow_dispute":
+                      return { label: "Disputed", color: "text-yellow-600", amount: `${(ev.amount || 0) / 1000000} ADA` };
+                    case "direct_send":
+                      return { label: "Sent", color: "text-red-600", amount: `${(ev.amount || 0) / 1000000} ADA` };
+                    default:
+                      return { label: ev.kind, color: "text-gray-600", amount: "" };
                   }
                 };
+                const formatTime = (timestamp: string | number) => {
+                  const date = new Date(timestamp);
+                  const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                  const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                  return `${dateStr} · ${timeStr}`;
+                };
+                const info = getTypeInfo();
                 return (
-                  <div key={i} className="p-4 text-xs">
-                    <p className="font-bold text-[#1e293b]">{getMessage()}</p>
-                    <p className="text-[#94a3b8] mt-1">{new Date(ev.timestamp).toLocaleDateString()}</p>
+                  <div key={i} className="py-4 px-4 border-b border-[#f1f5f9]">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className={`text-xs font-semibold ${info.color} mb-1`}>{info.label}</p>
+                        <p className="text-sm font-bold text-[#1e293b]">{info.amount}</p>
+                      </div>
+                      <p className="text-xs text-[#94a3b8]">{formatTime(ev.timestamp)}</p>
+                    </div>
+                    <p className="text-xs text-[#94a3b8] mt-1">Layer 2 · Instant · Saved ~0.17 ADA</p>
                   </div>
                 );
               })}
