@@ -27,7 +27,7 @@ export function DisputeList({ escrows, isOpen, loading, onPaySeller, onRefundBuy
   if (disputes.length === 0) {
     return (
       <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
-        <p className="text-xs font-mono text-zinc-700">// no active disputes</p>
+      <p className="text-xs font-mono text-zinc-700">// no pending reports</p>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export function DisputeList({ escrows, isOpen, loading, onPaySeller, onRefundBuy
   return (
     <div className="space-y-3">
       <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest">
-        active_disputes ({disputes.length})
+        pending_reports ({disputes.length})
       </p>
       {disputes.map((escrow) => (
         <DisputeCard
@@ -78,7 +78,7 @@ function DisputeCard({ escrow, isOpen, loading, onPaySeller, onRefundBuyer }: {
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-mono text-zinc-400">{escrow.dealId}</p>
         <span className="text-xs font-mono text-orange-400 border border-orange-800 rounded px-2 py-0.5">
-          DISPUTED
+          Under Review
         </span>
       </div>
 
@@ -120,7 +120,7 @@ function DisputeCard({ escrow, isOpen, loading, onPaySeller, onRefundBuyer }: {
               hover:bg-green-950 transition-colors flex items-center gap-2
               disabled:border-zinc-800 disabled:text-zinc-700 disabled:cursor-not-allowed disabled:bg-transparent"
           >
-            {loading ? <Spinner text="sending..." /> : "> pay seller (bob)"}
+            {loading ? <Spinner text="Sending..." /> : "> Pay Seller"}
           </button>
 
           <button
@@ -130,11 +130,11 @@ function DisputeCard({ escrow, isOpen, loading, onPaySeller, onRefundBuyer }: {
               hover:bg-blue-950 transition-colors flex items-center gap-2
               disabled:border-zinc-800 disabled:text-zinc-700 disabled:cursor-not-allowed disabled:bg-transparent"
           >
-            {loading ? <Spinner text="sending..." /> : "> refund buyer (alice)"}
+            {loading ? <Spinner text="Sending..." /> : "> Refund Buyer"}
           </button>
 
           {!isOpen && (
-            <p className="text-xs font-mono text-zinc-700">// head not open</p>
+            <p className="text-xs font-mono text-zinc-700">// Payment room not active</p>
           )}
         </div>
       ) : (

@@ -17,10 +17,10 @@ const KIND_COLOR: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   escrow_lock: "Payment Protected",
   escrow_release: "Payment Released",
-  escrow_dispute: "Flagged for Review",
-  escrow_resolve_pay: "Payment Released",
-  escrow_resolve_refund: "Payment Refunded",
-  direct_send: "Direct Transfer",
+  escrow_dispute: "Issue Reported",
+  escrow_resolve_pay: "Payment Sent",
+  escrow_resolve_refund: "Refund Sent",
+  direct_send: "Direct Payment",
 };
 
 function formatTime(ts: number) {
@@ -69,13 +69,13 @@ export default function ExplorerPage() {
         <div className="mb-8 border-b border-zinc-800 pb-5 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-mono font-bold text-zinc-100">Public Ledger</h1>
+              <h1 className="text-2xl font-mono font-bold text-zinc-100">All Transactions</h1>
               <span className="text-xs font-mono text-zinc-600 border border-zinc-700 rounded px-2 py-1 uppercase tracking-wider">
-                network visualizer
+                Live Feed
               </span>
             </div>
             <p className="text-sm font-mono text-zinc-500">
-              // every payment is automatically protected until delivery is confirmed
+              // All payments are automatically protected until delivery is confirmed
             </p>
           </div>
           <Link
@@ -114,7 +114,7 @@ export default function ExplorerPage() {
         <div className="border border-zinc-800 rounded bg-zinc-900 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-mono text-zinc-400 uppercase tracking-widest">
-              network_activity
+              Transaction List
             </h2>
             <p className="text-xs font-mono text-zinc-700">
               synced slot: #{Math.floor(Date.now() / 1000)}

@@ -60,7 +60,7 @@ export function BuyerTab() {
       {/* Identity header */}
       <div className="flex items-start justify-between mb-5 gap-3">
         <div>
-          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">alice :: buyer</p>
+          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">Buyer</p>
           <p className="text-xs font-mono text-zinc-700 break-all">
             addr_test1vqdf6gzqc4we0shgtnxxkyl5reshxx6gmcaujfdr7t9l34g204fe4
           </p>
@@ -93,7 +93,7 @@ export function BuyerTab() {
                 : "text-zinc-600 hover:text-zinc-400"
             }`}
           >
-            {m === "direct" ? "direct" : "escrow"}
+            {m === "direct" ? "Send" : "Protected"}
           </button>
         ))}
       </div>
@@ -131,7 +131,7 @@ export function BuyerTab() {
         {/* Right column - Activity feed */}
         <div className="lg:sticky lg:top-6 lg:self-start">
           <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
-            <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">activity_log</p>
+            <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">Activity</p>
             <TransactionFeed
               events={events}
               filterParty="alice"

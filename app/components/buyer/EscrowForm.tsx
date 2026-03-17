@@ -52,7 +52,7 @@ export function EscrowForm({ isOpen, loading, balance, onLock }: Props) {
 
   return (
     <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
-      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">new_escrow</p>
+      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">Protected Payment</p>
 
       <div className="flex flex-col gap-3">
         <Field label="recipient" error={errors.recipient}>
@@ -86,10 +86,10 @@ export function EscrowForm({ isOpen, loading, balance, onLock }: Props) {
         </Field>
 
         <TermBtn onClick={handleSubmit} disabled={disabled}>
-          {loading ? <Spinner text="locking..." /> : "> lock funds"}
+          {loading ? <Spinner text="Protecting..." /> : "> Pay with Protection"}
         </TermBtn>
 
-        {!isOpen && <p className="text-xs font-mono text-zinc-700">// head not open</p>}
+        {!isOpen && <p className="text-xs font-mono text-zinc-700">// Payment room not active</p>}
       </div>
     </section>
   );

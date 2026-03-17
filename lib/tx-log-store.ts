@@ -7,48 +7,24 @@ function makeId() {
   return `${Date.now()}-${++_counter}`;
 }
 
-// ── BroadcastChannel for cross-tab communication ───────────────────────────
-let txLogChannel: BroadcastChannel | null = null;
-
-function getTxLogChannel() {
-  if (typeof window !== "undefined" && !txLogChannel) {
-    try {
-      txLogChannel = new BroadcastChannel("tx-log-store");
-    } catch (e) {
-      // BroadcastChannel not supported
-    }
-  }
-  return txLogChannel;
-}
-
 type TxLogStore = {
   events: TxEvent[];
   addEvent: (e: Omit<TxEvent, "id" | "timestamp">) => void;
   clear: () => void;
 };
 
-export const useTxLogStore = create<TxLogStore>(
+export const useTxLogStore = create<TxLogStore>()(
   persist(
     (set) => ({
       events: [],
 
       addEvent: (e) =>
-        set((state) => {
-          const newEvent = { ...e, id: makeId(), timestamp: Date.now() };
-          const newState = {
-            events: [newEvent, ...state.events],
-          };
-          // Broadcast to other tabs
-          const channel = getTxLogChannel();
-          if (channel) {
-            try {
-              channel.postMessage({ type: "update", events: newState.events });
-            } catch (err) {
-              console.error("Failed to broadcast tx-log update:", err);
-            }
-          }
-          return newState;
-        }),
+        set((state) => ({
+          events: [
+            { ...e, id: makeId(), timestamp: Date.now() },
+            ...state.events,
+          ],
+        })),
 
       clear: () => set({ events: [] }),
     }),
@@ -59,16 +35,20 @@ export const useTxLogStore = create<TxLogStore>(
   )
 );
 
-// ── Listen for broadcasts from other tabs ──────────────────────────────────
+// ── Cross-tab synchronization ─────────────────────────────────────────────────
 if (typeof window !== "undefined") {
-  const channel = getTxLogChannel();
-  if (channel) {
-    channel.onmessage = (e) => {
-      if (e.data?.type === "update" && e.data?.events) {
-        useTxLogStore.setState({ events: e.data.events });
+  window.addEventListener("storage", (e) => {
+    if (e.key === "tx-log-store") {
+      try {
+        const newData = e.newValue ? JSON.parse(e.newValue) : null;
+        if (newData?.state?.events) {
+          useTxLogStore.setState({ events: newData.state.events });
+        }
+      } catch (err) {
+        console.error("Failed to sync tx-log-store across tabs:", err);
       }
-    };
-  }
+    }
+  });
 }
 
 // ── Convenience helpers ───────────────────────────────────────────────────────

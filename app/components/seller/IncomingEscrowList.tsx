@@ -26,7 +26,7 @@ export function IncomingEscrowList({ escrows, myAddress }: Props) {
   if (incomingEscrows.length === 0) {
     return (
       <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
-        <p className="text-xs font-mono text-zinc-700">// no incoming payments</p>
+        <p className="text-xs font-mono text-zinc-700">// No incoming payments</p>
       </div>
     );
   }
@@ -34,7 +34,7 @@ export function IncomingEscrowList({ escrows, myAddress }: Props) {
   return (
     <div className="space-y-3">
       <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest">
-        incoming_payments ({incomingEscrows.length})
+        Incoming Payments ({incomingEscrows.length})
       </p>
       {incomingEscrows.map((escrow) => (
         <IncomingEscrowCard key={escrow.dealId} escrow={escrow} />
@@ -53,11 +53,11 @@ function IncomingEscrowCard({ escrow }: { escrow: Escrow }) {
     : "border-green-800 bg-green-950/20";
 
   const statusBadge = escrow.status === "PENDING" ? (
-    <span className="text-xs font-mono text-blue-400 border border-blue-800 rounded px-2 py-0.5">PENDING</span>
+    <span className="text-xs font-mono text-blue-400 border border-blue-800 rounded px-2 py-0.5">Awaiting Delivery</span>
   ) : escrow.status === "DISPUTED" ? (
-    <span className="text-xs font-mono text-orange-400 border border-orange-800 rounded px-2 py-0.5">DISPUTED</span>
+    <span className="text-xs font-mono text-orange-400 border border-orange-800 rounded px-2 py-0.5">Under Review</span>
   ) : (
-    <span className="text-xs font-mono text-green-400 border border-green-800 rounded px-2 py-0.5">COMPLETED</span>
+    <span className="text-xs font-mono text-green-400 border border-green-800 rounded px-2 py-0.5">Released ✅</span>
   );
 
   return (
@@ -69,18 +69,18 @@ function IncomingEscrowCard({ escrow }: { escrow: Escrow }) {
 
       <div className="border border-zinc-800 rounded bg-zinc-950 p-3 mb-3 flex flex-col gap-1.5 text-xs font-mono">
         <div className="flex gap-2">
-          <span className="text-zinc-600 flex-shrink-0">amount:</span>
+          <span className="text-zinc-600 flex-shrink-0">Amount:</span>
           <span className="text-zinc-300 font-semibold">
             {(Number(escrow.amount) / 1_000_000).toFixed(2)} ADA
           </span>
         </div>
         <div className="flex gap-2">
-          <span className="text-zinc-600 flex-shrink-0">description:</span>
+          <span className="text-zinc-600 flex-shrink-0">Details:</span>
           <span className="text-zinc-500">{escrow.description}</span>
         </div>
         {escrow.status === "DISPUTED" && escrow.disputeReason && (
           <div className="flex gap-2 pt-2 border-t border-zinc-800">
-            <span className="text-orange-600 flex-shrink-0">dispute:</span>
+            <span className="text-orange-600 flex-shrink-0">Issue:</span>
             <span className="text-orange-400">{escrow.disputeReason}</span>
           </div>
         )}
@@ -89,27 +89,27 @@ function IncomingEscrowCard({ escrow }: { escrow: Escrow }) {
       {escrow.status === "PENDING" && !confirmed && (
         <div>
           <p className="text-xs font-mono text-zinc-500 mb-2">
-            // buyer locked funds — confirm delivery to allow release
+            // Payment is protected. Confirm delivery to allow release.
           </p>
           <button
             onClick={() => setConfirmed(true)}
             className="w-full border border-blue-800 text-blue-300 rounded px-3 py-2 text-xs font-mono
               hover:bg-blue-950 transition-colors"
           >
-            &gt; confirm delivery
+            &gt; Confirm Delivery
           </button>
         </div>
       )}
 
       {escrow.status === "PENDING" && confirmed && (
         <p className="text-xs font-mono text-green-600">
-          // delivery confirmed — waiting for buyer to release payment...
+          // Delivery confirmed — waiting for buyer to release payment...
         </p>
       )}
 
       {escrow.status === "DISPUTED" && (
         <p className="text-xs font-mono text-orange-600">
-          // dispute raised — mediator (carol) reviewing...
+          // Issue reported — dispute resolver is reviewing...
         </p>
       )}
     </section>

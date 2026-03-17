@@ -7,12 +7,12 @@ const PARTIES = [
 ];
 
 const FLOW_STEPS = [
-  { n: "01", text: "buyer initializes hydra head — all parties commit funds to L2" },
-  { n: "02", text: "buyer locks ADA in escrow with a description" },
-  { n: "03", text: "seller provides goods/services, confirms delivery" },
-  { n: "04", text: "buyer releases payment — or raises a dispute" },
-  { n: "05", text: "mediator resolves dispute: pay seller or refund buyer" },
-  { n: "06", text: "buyer closes head — final state fanned out back to L1" },
+  { n: "01", text: "Buyer creates payment room — all members contribute funds to L2" },
+  { n: "02", text: "Buyer protects payment with delivery description" },
+  { n: "03", text: "Seller confirms delivery, confirms receipt" },
+  { n: "04", text: "Buyer releases payment — or reports a problem" },
+  { n: "05", text: "Dispute resolver settles: pay seller or refund buyer" },
+  { n: "06", text: "Buyer closes payment room — funds returned to Cardano" },
 ];
 
 export default function LandingPage() {
@@ -30,10 +30,10 @@ export default function LandingPage() {
           </h1>
           <p className="font-mono text-sm text-zinc-500 mb-8 leading-relaxed">
             <span className="text-zinc-700">// </span>
-            3-party off-chain escrow on cardano hydra.
+            Protected 3-party payments on Cardano using Hydra.
             <br />
             <span className="text-zinc-700">// </span>
-            near-zero fees · instant finality · l1 secured.
+            Instant, secure, no fees — and settled on-chain.
           </p>
           <Link
             href="/dashboard"
@@ -46,17 +46,17 @@ export default function LandingPage() {
 
         {/* What is Hydra Head */}
         <div className="border border-zinc-800 rounded bg-zinc-900 p-5 mb-5">
-          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">what_is_hydra</p>
+          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">How It Works</p>
           <div className="font-mono text-xs text-zinc-500 leading-relaxed space-y-1">
-            <p><span className="text-zinc-700">// </span>a hydra head is a layer-2 isomorphic state channel on cardano.</p>
-            <p><span className="text-zinc-700">// </span>participants lock funds on-chain (l1), transact freely off-chain (l2).</p>
-            <p><span className="text-zinc-700">// </span>no fees · full speed · final state settled back to l1 via fanout.</p>
+            <p><span className="text-zinc-700">// </span>A payment room is a private channel where members transact instantly.</p>
+            <p><span className="text-zinc-700">// </span>Funds are committed on-chain once, then move freely off-chain.</p>
+            <p><span className="text-zinc-700">// </span>Final state settles back to Cardano when the room closes.</p>
           </div>
         </div>
 
         {/* Parties */}
         <div className="border border-zinc-800 rounded bg-zinc-900 p-5 mb-5">
-          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">participants</p>
+          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">The Three Roles</p>
           <div className="flex flex-col gap-2">
             {PARTIES.map((p) => (
               <div key={p.role} className="flex gap-3 font-mono text-xs">
@@ -71,7 +71,7 @@ export default function LandingPage() {
 
         {/* Escrow flow */}
         <div className="border border-zinc-800 rounded bg-zinc-900 p-5 mb-12">
-          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">escrow_flow</p>
+          <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">Payment Flow</p>
           <div className="flex flex-col gap-2">
             {FLOW_STEPS.map((s) => (
               <div key={s.n} className="flex gap-3 font-mono text-xs">

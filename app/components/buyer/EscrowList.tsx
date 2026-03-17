@@ -123,7 +123,7 @@ function EscrowCard({ escrow, isOpen, loading, onRelease, onCancel, onDispute }:
                   hover:bg-green-950 transition-colors disabled:border-zinc-800 disabled:text-zinc-700 
                   disabled:cursor-not-allowed disabled:bg-transparent"
               >
-                &gt; release payment
+                &gt; Confirm & Release
               </button>
               <button
                 onClick={() => setShowDisputeForm(true)}
@@ -132,7 +132,7 @@ function EscrowCard({ escrow, isOpen, loading, onRelease, onCancel, onDispute }:
                   hover:bg-orange-950 transition-colors disabled:border-zinc-800 disabled:text-zinc-700 
                   disabled:cursor-not-allowed disabled:bg-transparent"
               >
-                &gt; raise dispute
+                &gt; Report a Problem
               </button>
               <button
                 onClick={() => onCancel(escrow.dealId)}

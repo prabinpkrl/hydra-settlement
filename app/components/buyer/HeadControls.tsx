@@ -41,19 +41,19 @@ export function HeadControls({
 
   return (
     <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
-      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">head_lifecycle</p>
+      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">Payment Room Setup</p>
 
       <div className="flex flex-col gap-1.5">
 
-        <Step index={0} current={step} label="init_head" doneLabel="head initialized" isFinal={isFinal}>
+        <Step index={0} current={step} label="Create" doneLabel="Payment room created" isFinal={isFinal}>
           <TermBtn onClick={onInit} disabled={busy || step !== 0} color="white">
-            {loading && step === 0 ? <Spinner text="initializing..." /> : "> init head"}
+            {loading && step === 0 ? <Spinner text="Creating..." /> : "> Create Payment Room"}
           </TermBtn>
         </Step>
 
-        <Step index={1} current={step} label="commit_all" doneLabel="all parties committed" isFinal={isFinal}>
+        <Step index={1} current={step} label="Connect" doneLabel="all members connected" isFinal={isFinal}>
           <TermBtn onClick={onCommitAll} disabled={busy || step !== 1} color="indigo">
-            {loading && step === 1 ? <Spinner text="committing..." /> : "> commit all parties"}
+            {loading && step === 1 ? <Spinner text="Connecting..." /> : "> Open Payment Channel"}
           </TermBtn>
           {step === 1 && Object.values(commitStates).some((s) => s.status !== "idle") && (
             <div className="mt-2 flex flex-col gap-0.5 pl-2 border-l border-zinc-700">
@@ -68,15 +68,15 @@ export function HeadControls({
           )}
         </Step>
 
-        <Step index={2} current={step} label="close_head" doneLabel="head closed" isFinal={isFinal}>
+        <Step index={2} current={step} label="Close" doneLabel="Payment room closed" isFinal={isFinal}>
           <TermBtn onClick={onClose} disabled={busy || step !== 2} color="amber">
-            {closing ? <Spinner text="closing..." /> : "> close head"}
+            {closing ? <Spinner text="Closing..." /> : "> Close Payment Room"}
           </TermBtn>
         </Step>
 
-        <Step index={3} current={step} label="fanout_l1" doneLabel="funds settled on L1" isFinal={isFinal}>
+        <Step index={3} current={step} label="Withdraw" doneLabel="funds settled" isFinal={isFinal}>
           <TermBtn onClick={onFanout} disabled={busy || step !== 3} color="green">
-            {fanouting ? <Spinner text="fanning out..." /> : "> fanout to L1"}
+            {fanouting ? <Spinner text="Withdrawing..." /> : "> Withdraw to Cardano"}
           </TermBtn>
         </Step>
 

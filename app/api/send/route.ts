@@ -17,9 +17,8 @@ const HYDRA_EXAMPLE_DIR =
   process.env.HYDRA_EXAMPLE_DIR ??
   path.resolve(process.cwd(), "../kuber/kuber-hydra/hydra-example");
 
-// ---------------------------------------------------------------------------
+
 // Constants
-// ---------------------------------------------------------------------------
 
 const HYDRA_URLS: Record<string, string> = {
   alice: "http://localhost:8082",

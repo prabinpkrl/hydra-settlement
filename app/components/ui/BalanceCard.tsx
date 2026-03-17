@@ -17,14 +17,14 @@ export function BalanceCard({ balance, utxos, loading, isOpen }: Props) {
 
   return (
     <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
-      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">l2_balance</p>
+      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">Available Balance</p>
 
       {loading ? (
-        <p className="text-xs text-zinc-600 font-mono">fetching...</p>
+        <p className="text-xs text-zinc-600 font-mono">Loading...</p>
       ) : !isOpen ? (
-        <p className="text-xs text-zinc-600 font-mono">// head not open</p>
+        <p className="text-xs text-zinc-600 font-mono">// Payment room not active</p>
       ) : entries.length === 0 ? (
-        <p className="text-xs text-zinc-600 font-mono">// no utxos at this address</p>
+        <p className="text-xs text-zinc-600 font-mono">// No balance available</p>
       ) : (
         <>
           <div className="text-3xl font-mono font-bold text-green-400 mb-3">

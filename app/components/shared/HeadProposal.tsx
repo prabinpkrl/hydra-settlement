@@ -48,7 +48,7 @@ export function HeadProposal({ party, onHeadReady }: Props) {
     const trimmed = inputId.trim().toUpperCase();
     
     if (!trimmed) {
-      setError("enter a head ID");
+      setError("enter a room ID");
       return;
     }
     
@@ -198,14 +198,14 @@ export function HeadProposal({ party, onHeadReady }: Props) {
           {readyToInit && (
             <div className="bg-green-950/20 border border-green-700/30 rounded p-3">
               <p className="text-xs font-mono text-green-400">
-                all parties joined - ready to initialize
+                All members ready — let's start!
               </p>
               {onHeadReady && (
                 <button
                   onClick={onHeadReady}
                   className="mt-2 w-full px-4 py-2 bg-green-900/30 hover:bg-green-900/50 border border-green-700/50 rounded text-xs font-mono text-green-400 transition-colors"
                 >
-                  &gt; initialize head now
+                  &gt; Create Payment Room
                 </button>
               )}
             </div>
@@ -214,7 +214,7 @@ export function HeadProposal({ party, onHeadReady }: Props) {
           {/* Waiting message */}
           {hasJoined && !readyToInit && (
             <p className="text-xs font-mono text-zinc-600">
-              // waiting for other parties to join...
+              // Waiting for other members to join...
             </p>
           )}
         </div>

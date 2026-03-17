@@ -2,15 +2,15 @@ import type { TxEvent, Party } from "@/lib/types";
 import { PARTY_ADDRESSES } from "@/lib/types";
 
 const KIND_TAG: Record<TxEvent["kind"], string> = {
-  direct_send:           "SEND",
-  escrow_lock:           "LOCK",
-  escrow_release:        "RELEASE",
-  escrow_dispute:        "DISPUTE",
-  escrow_resolve_pay:    "RESOLVE:PAY",
-  escrow_resolve_refund: "RESOLVE:REFUND",
-  head_open:             "HEAD:OPEN",
-  head_close:            "HEAD:CLOSE",
-  head_fanout:           "HEAD:FANOUT",
+  direct_send:           "Send",
+  escrow_lock:           "Protected",
+  escrow_release:        "Released",
+  escrow_dispute:        "Reported",
+  escrow_resolve_pay:    "Paid",
+  escrow_resolve_refund: "Refunded",
+  head_open:             "Active",
+  head_close:            "Closing",
+  head_fanout:           "Withdrawn",
 };
 
 const KIND_COLOR: Record<TxEvent["kind"], string> = {
@@ -91,10 +91,10 @@ export function TransactionFeed({ events, filterParty, emptyText }: Props) {
                 <span className="text-xs font-mono text-zinc-600">note: {e.description}</span>
               )}
               {e.disputeReason && (
-                <span className="text-xs font-mono text-orange-600">reason: {e.disputeReason}</span>
+                <span className="text-xs font-mono text-orange-600">issue: {e.disputeReason}</span>
               )}
               {e.txHash && (
-                <span className="text-xs font-mono text-zinc-700 truncate">tx: {e.txHash.slice(0, 20)}…</span>
+                <span className="text-xs font-mono text-zinc-700 truncate">id: {e.txHash.slice(0, 20)}…</span>
               )}
             </div>
           )}

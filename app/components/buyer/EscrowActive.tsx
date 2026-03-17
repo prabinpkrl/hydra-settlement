@@ -75,27 +75,27 @@ export function EscrowActive({
 
       <div className="flex flex-col gap-2">
         <TermBtn onClick={onRelease} disabled={!isOpen || loading} color="green">
-          {loading ? <Spinner text="releasing..." /> : "> release payment"}
+          {loading ? <Spinner text="Releasing..." /> : "> Confirm & Release"}
         </TermBtn>
 
         <TermBtn onClick={onCancel} disabled={loading} color="zinc">
-          cancel escrow
+          cancel
         </TermBtn>
 
         {!showDispute ? (
           <TermBtn onClick={() => setShowDispute(true)} disabled={loading} color="amber">
-            raise dispute
+            Report a Problem
           </TermBtn>
         ) : (
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-mono text-zinc-600">dispute_reason:</label>
+            <label className="text-xs font-mono text-zinc-600">Problem details:</label>
             <textarea
               value={disputeReason}
               onChange={(e) => {
                 setDisputeReason(e.target.value);
                 setDisputeTouched(true);
               }}
-              placeholder="describe the issue..."
+              placeholder="Describe what went wrong..."
               rows={3}
               className={`w-full bg-zinc-800 rounded px-3 py-2 text-xs font-mono text-zinc-200
                 placeholder:text-zinc-700 resize-none focus:outline-none
@@ -109,7 +109,7 @@ export function EscrowActive({
             )}
             <div className="flex gap-2">
               <TermBtn onClick={submitDispute} disabled={!!disputeError || loading} color="amber">
-               submit
+               Submit Report
               </TermBtn>
               <TermBtn onClick={() => { setShowDispute(false); setDisputeReason(""); setDisputeTouched(false); }} disabled={false} color="zinc">
                 cancel

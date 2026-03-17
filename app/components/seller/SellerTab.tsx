@@ -96,7 +96,7 @@ export function SellerTab() {
       {/* Identity */}
       <div className="flex items-start justify-between mb-5 gap-3">
         <div>
-          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">bob :: seller</p>
+          <p className="text-xs font-mono text-zinc-600 tracking-widest uppercase mb-1">Seller</p>
           <p className="text-xs font-mono text-zinc-700 break-all">{PARTY_ADDRESSES.bob}</p>
         </div>
         <div className="flex-shrink-0">
@@ -118,10 +118,10 @@ export function SellerTab() {
           {/* Send form */}
           {isOpen && (
             <section className="border border-zinc-800 rounded bg-zinc-900 p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">send_payment</p>
+              <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">Send Payment</p>
               <div className="flex flex-col gap-3">
                 <div>
-                  <label className="text-xs font-mono text-zinc-600 mb-1 block">to_address:</label>
+                  <label className="text-xs font-mono text-zinc-600 mb-1 block">To Address:</label>
                   <input
                     type="text"
                     value={recipient}
@@ -146,7 +146,7 @@ export function SellerTab() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-mono text-zinc-600 mb-1 block">amount_ada:</label>
+                  <label className="text-xs font-mono text-zinc-600 mb-1 block">Amount:</label>
                   <input
                     type="number"
                     value={amount}
@@ -178,12 +178,12 @@ export function SellerTab() {
                     disabled:border-zinc-800 disabled:text-zinc-700 disabled:cursor-not-allowed disabled:bg-transparent`}
                 >
                   {partyActions.loading ? (
-                    <>
+                    <>  
                       <span className="inline-block w-2.5 h-2.5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                      sending...
+                      Sending...
                     </>
                   ) : (
-                    "> send"
+                    "> Send Payment"
                   )}
                 </button>
               </div>
@@ -194,7 +194,7 @@ export function SellerTab() {
 
           {!isOpen && !loading && (
             <section className="border border-zinc-800 rounded bg-zinc-900 p-4">
-              <p className="text-xs font-mono text-zinc-700">// waiting for hydra head to open</p>
+              <p className="text-xs font-mono text-zinc-700">// waiting for payment room to open</p>
             </section>
           )}
         </div>
@@ -202,7 +202,7 @@ export function SellerTab() {
         {/* Right column - Activity feed */}
         <div className="lg:sticky lg:top-6 lg:self-start">
           <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
-            <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">activity_log</p>
+            <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">Activity</p>
             <TransactionFeed events={events} filterParty="bob" emptyText="no transactions yet" />
           </div>
         </div>

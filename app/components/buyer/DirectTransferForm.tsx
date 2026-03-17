@@ -54,10 +54,10 @@ export function DirectTransferForm({ isOpen, loading, balance, onSend }: Props) 
 
   return (
     <section className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-4">
-      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">direct_transfer</p>
+      <p className="text-xs text-zinc-500 uppercase tracking-widest mb-4">Send Payment</p>
 
       <div className="flex flex-col gap-3">
-        <Field label="to_address" error={errors.recipient}>
+        <Field label="Recipient" error={errors.recipient}>
           <TermInput
             value={recipient}
             onChange={(v) => { setRecipient(v); setTouched({ ...touched, recipient: true }); }}
@@ -68,7 +68,7 @@ export function DirectTransferForm({ isOpen, loading, balance, onSend }: Props) 
           />
         </Field>
 
-        <Field label="amount_ada" error={errors.amount}>
+        <Field label="Amount" error={errors.amount}>
           <TermInput
             value={amount}
             onChange={(v) => { setAmount(v); setTouched({ ...touched, amount: true }); }}
@@ -80,14 +80,14 @@ export function DirectTransferForm({ isOpen, loading, balance, onSend }: Props) 
         </Field>
 
         <TermBtn onClick={handleSubmit} disabled={disabled} color="blue">
-          {loading ? <Spinner text="sending..." /> : "> send"}
+          {loading ? <Spinner text="Sending..." /> : "> Send Payment"}
         </TermBtn>
 
-        {!isOpen && <p className="text-xs font-mono text-zinc-700">// head not open</p>}
+        {!isOpen && <p className="text-xs font-mono text-zinc-700">// Payment room not active</p>}
 
         {lastHash && (
           <div className="border border-green-900 rounded bg-zinc-950 p-3">
-            <p className="text-xs font-mono text-green-500 mb-1">// transfer sent</p>
+            <p className="text-xs font-mono text-green-500 mb-1">// Payment sent</p>
             <p className="font-mono text-xs text-zinc-500 break-all">{lastHash}</p>
           </div>
         )}

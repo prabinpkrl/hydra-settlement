@@ -67,33 +67,33 @@ export default function DashboardPage() {
         {/* Metrics Cards */}
         <div className="mb-6">
           <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">
-            system_metrics
+            Active Payments
           </p>
           <div className="grid grid-cols-4 gap-3">
-            <MetricCard label="active_escrows" value={activeEscrows} />
-            <MetricCard label="disputes" value={disputes} highlight={disputes > 0} />
-            <MetricCard label="completed" value={completedCount} />
-            <MetricCard label="volume" value={`${(totalVolume / 1_000_000).toFixed(1)}₳`} />
+            <MetricCard label="Active Payments" value={activeEscrows} />
+            <MetricCard label="Pending Issues" value={disputes} highlight={disputes > 0} />
+            <MetricCard label="Completed" value={completedCount} />
+            <MetricCard label="Total Volume" value={`${(totalVolume / 1_000_000).toFixed(1)}₿`} />
           </div>
         </div>
 
-        {/* Head Status */}
+        {/* Payment Room Status */}
         <div className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest">
-              head_status
+              Payment Room Status
             </p>
             <HeadStatusBadge tag={headTag} />
           </div>
           <p className="text-xs font-mono text-zinc-500">
-            participants: <span className="text-zinc-400">alice, bob, carol</span>
+            Members: <span className="text-zinc-400">Buyer, Seller, Dispute Resolver</span>
           </p>
         </div>
 
-        {/* Party Balances */}
+        {/* Available Balances */}
         <div className="border border-zinc-800 rounded bg-zinc-900 p-4 mb-6">
           <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">
-            party_balances
+            Available Balances
           </p>
           <div className="flex flex-col gap-2">
             <BalanceRow party="alice" role="buyer" balance={aliceUtxos.balance} loading={aliceUtxos.loading} />
@@ -105,7 +105,7 @@ export default function DashboardPage() {
         {/* Live Activity Feed */}
         <div className="border border-zinc-800 rounded bg-zinc-900 p-4">
           <p className="text-xs font-mono text-zinc-600 uppercase tracking-widest mb-3">
-            live_activity
+            Activity
           </p>
           {recentActivity.length === 0 ? (
             <p className="text-xs font-mono text-zinc-700">// no recent activity</p>
@@ -167,10 +167,10 @@ function ActivityItem({ event }: { event: any }) {
   };
 
   const getAction = () => {
-    if (event.kind === "escrow_lock") return `locked ${(event.amount! / 1_000_000).toFixed(1)}₳`;
-    if (event.kind === "escrow_release") return `released ${(event.amount! / 1_000_000).toFixed(1)}₳`;
-    if (event.kind === "direct_send") return `sent ${(event.amount! / 1_000_000).toFixed(1)}₳`;
-    if (event.kind === "escrow_dispute") return "disputed escrow";
+    if (event.kind === "escrow_lock") return `protected ${(event.amount! / 1_000_000).toFixed(1)}₿`;
+    if (event.kind === "escrow_release") return `released ${(event.amount! / 1_000_000).toFixed(1)}₿`;
+    if (event.kind === "direct_send") return `sent ${(event.amount! / 1_000_000).toFixed(1)}₿`;
+    if (event.kind === "escrow_dispute") return "reported issue";
     if (event.kind === "escrow_resolve_pay") return "resolved (paid)";
     if (event.kind === "escrow_resolve_refund") return "resolved (refund)";
     return event.kind;
