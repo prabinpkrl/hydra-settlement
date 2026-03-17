@@ -11,7 +11,7 @@ import { HeadStatusBadge } from "@/app/components/ui/HeadStatusBadge";
 import { BalanceCard } from "@/app/components/ui/BalanceCard";
 import { Toast } from "@/app/components/ui/Toast";
 import { TransactionFeed } from "@/app/components/ui/TransactionFeed";
-import { HeadControls } from "@/app/components/buyer/HeadControls";
+
 import { HeadProposal } from "@/app/components/shared/HeadProposal";
 import { DirectTransferForm } from "@/app/components/buyer/DirectTransferForm";
 import { EscrowForm } from "@/app/components/buyer/EscrowForm";
@@ -47,11 +47,8 @@ export function BuyerTab() {
     }
   }, [proposal?.headId, setCurrentHeadId]);
 
-  // Handle head initialization when all parties joined
-  const handleHeadReady = async () => {
-    markActive();
-    await headActions.initHead();
-  };
+  // Sync current headId so escrows auto-save to localStorage
+  // (HeadProposal is commented out - start with payment channel controls directly)
 
   return (
     <div>
@@ -141,23 +138,7 @@ export function BuyerTab() {
         </div>
       </div>
 
-      {/* Head Coordination or Controls */}
-      {headNotInitialized && proposal?.status !== "active" ? (
-        <HeadProposal party="alice" onHeadReady={handleHeadReady} />
-      ) : (
-        <HeadControls
-          headTag={headTag}
-          loading={headActions.loading}
-          closing={headActions.closing}
-          fanouting={headActions.fanouting}
-          commitStates={headActions.commitStates}
-          statusMsg={headActions.statusMsg}
-          onInit={headActions.initHead}
-          onCommitAll={headActions.commitAll}
-          onClose={headActions.closeHead}
-          onFanout={headActions.fanoutHead}
-        />
-      )}
+      {/* Note: Payment channel controls managed in Dashboard */}
     </div>
   );
 }
