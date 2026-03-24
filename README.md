@@ -79,5 +79,7 @@ Open:
 - **Kuber Hydra** - Hydra API wrapper
 
 
-##Watch demo
+## Demo Video
+[Watch Demo](https://drive.google.com/file/d/1Umr9kbSVCq8T7yvPWc9kygNKVT8VQrGm/preview)
+
 <iframe src="https://drive.google.com/file/d/1Umr9kbSVCq8T7yvPWc9kygNKVT8VQrGm/preview" width="640" height="480"></iframe>
